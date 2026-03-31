@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Google Fonts loaded via CSS (network-free fallback using system fonts) */
+:root {
+  --font-playfair: "Playfair Display", Georgia, "Times New Roman", serif;
+  --font-inter: Inter, "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
 :root {
   --primary: #E8601C;
   --primary-light: #F4845F;
