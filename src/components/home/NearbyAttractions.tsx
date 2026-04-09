@@ -1,177 +1,249 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { MapPin, Navigation } from "lucide-react";
-import SectionTitle from "@/components/ui/SectionTitle";
+import React from "react";
+import { MapPin, ExternalLink, Navigation, Clock } from "lucide-react";
+import { AnimatedSection } from "@/components/ui/AnimatedSection";
+import { Carousel, Card } from "@/components/ui/apple-cards-carousel";
 
-const attractions = [
+interface Location {
+  title: string;
+  category: string;
+  distance: string;
+  time: string;
+  description: string;
+  gradient: string;
+}
+
+const locations: Location[] = [
   {
-    name: "Rushikonda Beach",
+    title: "Rushikonda Beach",
+    category: "1 km · 5 min walk",
     distance: "1 km",
-    type: "Beach",
-    description: "Beautiful golden sandy beach perfect for morning walks",
-    color: "from-blue-400 to-cyan-500",
-    emoji: "🏖️",
+    time: "5 min walk",
+    description:
+      "Beautiful golden sandy beach perfect for morning walks and evening relaxation. One of Vizag's most loved beaches, just steps from your door.",
+    gradient: "from-sky-400 via-blue-500 to-indigo-600",
   },
   {
-    name: "Geetham Medical College",
-    distance: "Walkable",
-    type: "Education",
-    description: "Prestigious medical college within walking distance",
-    color: "from-green-400 to-emerald-500",
-    emoji: "🏥",
+    title: "Gitam Medical College",
+    category: "0.5 km · 3 min walk",
+    distance: "0.5 km",
+    time: "3 min walk",
+    description:
+      "Prestigious medical college and hospital within walking distance. Perfect for medical students and healthcare professionals.",
+    gradient: "from-emerald-400 via-green-500 to-teal-600",
   },
   {
-    name: "TTD Venkateswara Swamy Temple",
-    distance: "2 km",
-    type: "Temple",
-    description: "Renowned Sri Venkateswara Swamy Devalayam",
-    color: "from-yellow-400 to-orange-500",
-    emoji: "🛕",
-  },
-  {
-    name: "Food Centers",
-    distance: "9 mins",
-    type: "Dining",
-    description: "Various restaurants and food courts nearby",
-    color: "from-red-400 to-pink-500",
-    emoji: "🍽️",
-  },
-  {
-    name: "International Cricket Stadium",
+    title: "IT SEZ / Tech Park",
+    category: "4 km · 10 min drive",
     distance: "4 km",
-    type: "Sports",
-    description: "World-class cricket stadium for sports enthusiasts",
-    color: "from-indigo-400 to-purple-500",
-    emoji: "🏏",
+    time: "10 min drive",
+    description:
+      "Major IT hub with top technology companies like Wipro, TCS, and Infosys. Short commute for working professionals.",
+    gradient: "from-violet-400 via-purple-500 to-indigo-600",
   },
   {
-    name: "IT SEZ / Tech Park",
-    distance: "4 km",
-    type: "Business",
-    description: "Major IT hub with top technology companies",
-    color: "from-[#1A2E5A] to-[#2A4A8A]",
-    emoji: "💼",
+    title: "Food & Restaurants",
+    category: "0.8 km · 5 min walk",
+    distance: "0.8 km",
+    time: "5 min walk",
+    description:
+      "Various restaurants, cafes, street food stalls, and food courts nearby offering cuisines from all over India.",
+    gradient: "from-orange-400 via-red-500 to-rose-600",
   },
   {
-    name: "Indira Gandhi Zoological Park",
-    distance: "5 km",
-    type: "Recreation",
-    description: "One of India's largest zoos, great for weekends",
-    color: "from-lime-400 to-green-500",
-    emoji: "🦁",
-  },
-  {
-    name: "RTC Bus Station",
-    distance: "10 km",
-    type: "Transport",
-    description: "Central bus station with connections citywide",
-    color: "from-amber-400 to-yellow-500",
-    emoji: "🚌",
-  },
-  {
-    name: "Visakhapatnam Railway Station",
+    title: "Railway Station",
+    category: "15 km · 25 min drive",
     distance: "15 km",
-    type: "Transport",
-    description: "Major railway junction connecting all major cities",
-    color: "from-gray-400 to-gray-600",
-    emoji: "🚂",
+    time: "25 min drive",
+    description:
+      "Major railway junction connecting all major cities across India. Well-connected via city buses and autos.",
+    gradient: "from-slate-500 via-gray-600 to-zinc-700",
   },
   {
-    name: "Visakhapatnam Airport",
+    title: "Visakhapatnam Airport",
+    category: "22 km · 35 min drive",
     distance: "22 km",
-    type: "Transport",
-    description: "International airport with domestic & intl flights",
-    color: "from-sky-400 to-blue-500",
-    emoji: "✈️",
+    time: "35 min drive",
+    description:
+      "International airport with domestic and international flights connecting Vizag to major cities worldwide.",
+    gradient: "from-blue-400 via-sky-500 to-cyan-600",
   },
 ];
 
-const containerVariants = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.08 } },
-};
+function LocationCardContent({ location }: { location: Location }) {
+  return (
+    <div className="bg-white rounded-2xl p-6">
+      <div className="flex items-center gap-3 mb-4">
+        <span className="flex items-center gap-1.5 text-sm text-gray-500">
+          <Navigation size={14} className="text-primary" />
+          {location.distance}
+        </span>
+        <span className="w-1 h-1 rounded-full bg-gray-300" />
+        <span className="flex items-center gap-1.5 text-sm text-gray-500">
+          <Clock size={14} />
+          {location.time}
+        </span>
+      </div>
+      <p className="text-gray-700 leading-relaxed">{location.description}</p>
+    </div>
+  );
+}
 
-const cardVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-};
+function GradientCard({ location }: { location: Location }) {
+  return (
+    <div
+      className={`w-full h-full bg-gradient-to-br ${location.gradient} rounded-3xl`}
+    />
+  );
+}
 
 export default function NearbyAttractions() {
+  const cards = locations.map((loc, index) => ({
+    src: "",
+    title: loc.title,
+    category: loc.category,
+    content: <LocationCardContent location={loc} />,
+    gradient: loc.gradient,
+  }));
+
+  const carouselItems = locations.map((loc, index) => {
+    const cardData = {
+      src: "",
+      title: loc.title,
+      category: loc.category,
+      content: <LocationCardContent location={loc} />,
+    };
+    return (
+      <div key={loc.title} className="relative">
+        <LocationCard location={loc} index={index} />
+      </div>
+    );
+  });
+
   return (
-    <section className="section-padding bg-[#FFF8F5]">
-      <div className="container-custom">
-        <SectionTitle
-          eyebrow="Location Advantage"
-          title="Nearby "
-          highlight="Attractions"
-          description="Murams Living is strategically located in Rushikonda with easy access to beaches, educational institutions, tech parks, and essential services."
-          centered
-        />
+    <section className="py-20 lg:py-28 bg-white relative overflow-hidden">
+      <div className="container-custom relative">
+        {/* Section Header */}
+        <AnimatedSection className="max-w-3xl mb-4 lg:mb-6">
+          <p className="text-primary font-semibold text-sm uppercase tracking-[0.15em] mb-4">
+            Prime Location
+          </p>
 
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-50px" }}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5"
-        >
-          {attractions.map((attraction) => (
-            <motion.div
-              key={attraction.name}
-              variants={cardVariants}
-              className="attraction-card group"
+          <h2 className="font-heading text-4xl lg:text-5xl font-bold text-navy mb-4">
+            Perfectly placed in Rushikonda.
+          </h2>
+
+          <p className="text-text-secondary text-lg max-w-xl">
+            Steps from the beach, close to top colleges and IT parks — the best
+            of Visakhapatnam is right at your doorstep.
+          </p>
+        </AnimatedSection>
+      </div>
+
+      {/* Carousel — full bleed */}
+      <LocationCarousel />
+
+      {/* Map CTA */}
+      <div className="container-custom relative mt-8 lg:mt-12">
+        <AnimatedSection delay={0.2}>
+          <div className="relative bg-navy rounded-2xl p-8 lg:p-10 overflow-hidden flex flex-col sm:flex-row items-center justify-between gap-6">
+            <div
+              className="absolute inset-0 opacity-[0.04]"
+              style={{
+                backgroundImage: `linear-gradient(rgba(255,255,255,0.15) 1px, transparent 1px),
+                                 linear-gradient(90deg, rgba(255,255,255,0.15) 1px, transparent 1px)`,
+                backgroundSize: "40px 40px",
+              }}
+            />
+            <div className="relative text-center sm:text-left">
+              <h3 className="font-heading text-2xl font-bold text-white mb-2">
+                Find Us on the Map
+              </h3>
+              <p className="text-white/60 max-w-md text-sm">
+                Located in scenic Rushikonda, just a stone&apos;s throw from the
+                beach and perfectly connected to the city.
+              </p>
+            </div>
+            <a
+              href="https://maps.google.com/?q=Murams+Living+Rushikonda+Visakhapatnam"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="relative group flex items-center gap-3 px-7 py-3.5 bg-white text-navy font-semibold rounded-xl hover:bg-primary hover:text-white transition-all duration-300 shrink-0 text-sm"
             >
-              {/* Color header */}
-              <div
-                className={`h-28 bg-gradient-to-br ${attraction.color} flex items-center justify-center relative overflow-hidden`}
-              >
-                <span className="text-5xl">{attraction.emoji}</span>
-                {/* Distance badge */}
-                <div className="absolute top-3 right-3 bg-white/90 text-[#E8601C] text-xs font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
-                  <Navigation size={10} />
-                  {attraction.distance}
-                </div>
-              </div>
-
-              {/* Content */}
-              <div className="p-4">
-                <div className="flex items-start gap-2 mb-1.5">
-                  <MapPin size={14} className="text-[#E8601C] shrink-0 mt-0.5" />
-                  <h3 className="font-heading font-semibold text-sm text-[#1A2E5A] leading-tight">
-                    {attraction.name}
-                  </h3>
-                </div>
-                <span className="inline-block text-xs text-[#E8601C] bg-[#E8601C]/10 px-2 py-0.5 rounded-full mb-2">
-                  {attraction.type}
-                </span>
-                <p className="text-gray-500 text-xs leading-relaxed">
-                  {attraction.description}
-                </p>
-              </div>
-            </motion.div>
-          ))}
-        </motion.div>
-
-        {/* Map CTA */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className="mt-10 text-center"
-        >
-          <a
-            href="https://maps.google.com/?q=Rushikonda+Visakhapatnam"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-primary inline-flex"
-          >
-            <MapPin size={16} />
-            View on Google Maps
-          </a>
-        </motion.div>
+              <MapPin size={16} />
+              <span>Open in Google Maps</span>
+              <ExternalLink
+                size={13}
+                className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform"
+              />
+            </a>
+          </div>
+        </AnimatedSection>
       </div>
     </section>
+  );
+}
+
+function LocationCard({
+  location,
+  index,
+}: {
+  location: Location;
+  index: number;
+}) {
+  return (
+    <div
+      className={`
+        relative overflow-hidden rounded-3xl cursor-pointer group
+        h-80 w-56 md:h-[28rem] md:w-80
+        bg-gradient-to-br ${location.gradient}
+        flex-shrink-0
+      `}
+    >
+      {/* Top fade for text readability */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/10 to-black/60 z-10" />
+
+      {/* Content */}
+      <div className="absolute inset-0 z-20 p-6 flex flex-col justify-between">
+        <div>
+          <p className="text-white/80 text-xs font-medium uppercase tracking-wider mb-1">
+            {location.category.split(" · ")[1]}
+          </p>
+          <h3 className="text-white text-xl md:text-2xl font-bold leading-tight">
+            {location.title}
+          </h3>
+        </div>
+        <div className="space-y-3">
+          <p className="text-white/70 text-sm leading-relaxed line-clamp-3">
+            {location.description}
+          </p>
+          <div className="flex items-center gap-3">
+            <span className="flex items-center gap-1.5 text-white/90 text-xs font-semibold bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full">
+              <Navigation size={11} />
+              {location.distance}
+            </span>
+            <span className="flex items-center gap-1.5 text-white/90 text-xs font-semibold bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full">
+              <Clock size={11} />
+              {location.time}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function LocationCarousel() {
+  return (
+    <div className="w-full overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+      <div className="flex gap-4 px-4 md:px-8 lg:px-[calc((100vw-1280px)/2+2rem)] py-6">
+        {locations.map((loc, index) => (
+          <LocationCard key={loc.title} location={loc} index={index} />
+        ))}
+        {/* Spacer for last card */}
+        <div className="w-4 flex-shrink-0" />
+      </div>
+    </div>
   );
 }

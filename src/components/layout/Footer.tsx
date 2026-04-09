@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { Phone, Mail, MapPin } from "lucide-react";
+import Image from "next/image";
+import { motion } from "framer-motion";
+import { Phone, Mail, MapPin, ArrowUpRight, ArrowRight } from "lucide-react";
 import {
   FaFacebookF,
   FaInstagram,
-  FaTwitter,
-  FaLinkedinIn,
   FaWhatsapp,
+  FaYoutube,
 } from "react-icons/fa";
 
 const quickLinks = [
@@ -15,100 +16,147 @@ const quickLinks = [
   { href: "/about", label: "About Us" },
   { href: "/amenities", label: "Amenities" },
   { href: "/gallery", label: "Gallery" },
-  { href: "/blog", label: "Blog" },
-  { href: "/contact", label: "Contact Us" },
+  { href: "/contact", label: "Contact" },
 ];
 
 const amenitiesLinks = [
-  "Air-Conditioned Rooms",
-  "High Speed WiFi",
+  "AC Rooms",
+  "High-Speed WiFi",
   "Home-Cooked Meals",
   "24/7 Hot Water",
-  "24/7 Security & CCTV",
-  "Daily Housekeeping",
+  "24/7 Security",
+  "Housekeeping",
   "Elevator/Lift",
-  "Beach View Terrace",
+  "Beach View",
+];
+
+const socialLinks = [
+  { href: "https://facebook.com", icon: FaFacebookF, label: "Facebook", color: "#1877F2" },
+  { href: "https://instagram.com", icon: FaInstagram, label: "Instagram", color: "#E4405F" },
+  { href: "https://wa.me/917816055655", icon: FaWhatsapp, label: "WhatsApp", color: "#25D366" },
+  { href: "https://youtube.com", icon: FaYoutube, label: "YouTube", color: "#FF0000" },
 ];
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-[#1A2E5A] text-white">
-      <div className="container-custom py-14 lg:py-20">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
-          {/* Column 1: Logo + About */}
-          <div className="lg:col-span-1">
-            <div className="flex flex-col leading-none mb-5">
-              <span className="font-heading font-bold text-3xl text-[#E8601C]">
-                Murams
-              </span>
-              <span className="font-heading font-semibold text-sm text-white/80 tracking-widest -mt-1">
-                LIVING
-              </span>
+    <footer className="relative bg-navy-dark text-white overflow-hidden">
+      {/* Background decorations */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[100px]" />
+        <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-navy-light/10 rounded-full blur-[80px]" />
+      </div>
+
+      {/* CTA Section */}
+      <div className="relative border-b border-white/10">
+        <div className="container-custom py-16 lg:py-20">
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
+            <div className="text-center lg:text-left">
+              <motion.h2
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6 }}
+                className="font-heading text-3xl lg:text-4xl font-bold mb-3"
+              >
+                Ready to make <span className="text-primary">Murams</span> your home?
+              </motion.h2>
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.1 }}
+                className="text-white/60 text-lg"
+              >
+                Book a visit today and experience premium living.
+              </motion.p>
             </div>
-            <p className="text-white/70 text-sm leading-relaxed mb-6">
-              Your perfect home-like PG & Hostel stay in Rushikonda,
-              Visakhapatnam. Experience comfort, safety, and community like never
-              before.
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="flex flex-col sm:flex-row gap-4"
+            >
+              <a
+                href="tel:+917816055655"
+                className="group flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-primary to-primary-dark text-white font-semibold rounded-xl hover:shadow-glow transition-all duration-300"
+              >
+                <Phone size={18} />
+                <span>Call Us Now</span>
+                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+              </a>
+              <a
+                href="https://wa.me/917816055655"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-center justify-center gap-3 px-8 py-4 bg-white/10 backdrop-blur-sm text-white font-semibold rounded-xl border border-white/20 hover:bg-white/20 transition-all duration-300"
+              >
+                <FaWhatsapp size={18} />
+                <span>WhatsApp</span>
+              </a>
+            </motion.div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Footer Content */}
+      <div className="relative container-custom py-16 lg:py-20">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-8">
+          {/* Column 1: Brand */}
+          <div className="lg:col-span-4">
+            <Link href="/" className="inline-block mb-6">
+              <Image
+                src="/logo.png"
+                alt="Murams Living"
+                width={180}
+                height={45}
+                className="brightness-0 invert"
+              />
+            </Link>
+            <p className="text-white/60 text-sm leading-relaxed mb-6 max-w-sm">
+              Experience premium PG & Hostel living in Rushikonda, Visakhapatnam. 
+              Where comfort meets community, and every day feels like home.
             </p>
-            <div className="flex items-center gap-2.5">
-              {[
-                {
-                  href: "https://facebook.com",
-                  icon: <FaFacebookF size={13} />,
-                  label: "Facebook",
-                },
-                {
-                  href: "https://instagram.com",
-                  icon: <FaInstagram size={13} />,
-                  label: "Instagram",
-                },
-                {
-                  href: "https://twitter.com",
-                  icon: <FaTwitter size={13} />,
-                  label: "Twitter",
-                },
-                {
-                  href: "https://linkedin.com",
-                  icon: <FaLinkedinIn size={13} />,
-                  label: "LinkedIn",
-                },
-                {
-                  href: "https://wa.me/917816055655",
-                  icon: <FaWhatsapp size={13} />,
-                  label: "WhatsApp",
-                },
-              ].map((social) => (
-                <Link
+            
+            {/* Social Links */}
+            <div className="flex items-center gap-3">
+              {socialLinks.map((social) => (
+                <motion.a
                   key={social.label}
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={social.label}
-                  className="w-8 h-8 rounded-full bg-white/10 hover:bg-[#E8601C] flex items-center justify-center transition-all duration-300"
+                  whileHover={{ scale: 1.1, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all duration-300 group"
+                  style={{ '--hover-color': social.color } as React.CSSProperties}
                 >
-                  {social.icon}
-                </Link>
+                  <social.icon 
+                    size={16} 
+                    className="text-white/70 group-hover:text-white transition-colors"
+                  />
+                </motion.a>
               ))}
             </div>
           </div>
 
           {/* Column 2: Quick Links */}
-          <div>
-            <h3 className="font-heading font-semibold text-lg mb-5 text-white relative">
+          <div className="lg:col-span-2">
+            <h3 className="font-semibold text-sm uppercase tracking-wider text-white/40 mb-6">
               Quick Links
-              <span className="block w-10 h-0.5 bg-[#E8601C] mt-2" />
             </h3>
-            <ul className="space-y-2.5">
+            <ul className="space-y-3">
               {quickLinks.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-white/70 hover:text-[#E8601C] text-sm transition-colors flex items-center gap-2"
+                    className="group flex items-center gap-2 text-white/70 hover:text-primary text-sm transition-all duration-300"
                   >
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#E8601C] shrink-0" />
-                    {link.label}
+                    <span className="w-1 h-1 rounded-full bg-primary/50 group-hover:bg-primary group-hover:scale-150 transition-all duration-300" />
+                    <span>{link.label}</span>
                   </Link>
                 </li>
               ))}
@@ -116,15 +164,14 @@ export default function Footer() {
           </div>
 
           {/* Column 3: Amenities */}
-          <div>
-            <h3 className="font-heading font-semibold text-lg mb-5 text-white relative">
-              Our Amenities
-              <span className="block w-10 h-0.5 bg-[#E8601C] mt-2" />
+          <div className="lg:col-span-2">
+            <h3 className="font-semibold text-sm uppercase tracking-wider text-white/40 mb-6">
+              Amenities
             </h3>
-            <ul className="space-y-2.5">
+            <ul className="space-y-3">
               {amenitiesLinks.map((amenity) => (
                 <li key={amenity} className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#E8601C] shrink-0" />
+                  <span className="w-1 h-1 rounded-full bg-primary/50" />
                   <span className="text-white/70 text-sm">{amenity}</span>
                 </li>
               ))}
@@ -132,68 +179,89 @@ export default function Footer() {
           </div>
 
           {/* Column 4: Contact */}
-          <div>
-            <h3 className="font-heading font-semibold text-lg mb-5 text-white relative">
-              Contact Us
-              <span className="block w-10 h-0.5 bg-[#E8601C] mt-2" />
+          <div className="lg:col-span-4">
+            <h3 className="font-semibold text-sm uppercase tracking-wider text-white/40 mb-6">
+              Get in Touch
             </h3>
-            <ul className="space-y-4">
+            <ul className="space-y-5">
               <li>
                 <a
                   href="tel:+917816055655"
-                  className="flex items-start gap-3 text-white/70 hover:text-[#E8601C] text-sm transition-colors group"
+                  className="group flex items-start gap-4 text-white/70 hover:text-white transition-colors"
                 >
-                  <div className="w-8 h-8 rounded-lg bg-white/10 group-hover:bg-[#E8601C]/20 flex items-center justify-center shrink-0 transition-colors">
-                    <Phone size={14} />
+                  <div className="w-10 h-10 rounded-xl bg-white/10 group-hover:bg-primary/20 flex items-center justify-center shrink-0 transition-colors">
+                    <Phone size={16} className="text-primary" />
                   </div>
                   <div>
-                    <div>+91 7816055655</div>
-                    <div className="mt-0.5">+91 7842222284</div>
+                    <div className="text-sm font-medium text-white/90">Phone</div>
+                    <div className="text-sm">+91 7816055655</div>
+                    <div className="text-sm">+91 7842222284</div>
                   </div>
                 </a>
               </li>
               <li>
                 <a
-                  href="mailto:info@muramsliving.com"
-                  className="flex items-start gap-3 text-white/70 hover:text-[#E8601C] text-sm transition-colors group"
+                  href="mailto:contact@muramsliving.com"
+                  className="group flex items-start gap-4 text-white/70 hover:text-white transition-colors"
                 >
-                  <div className="w-8 h-8 rounded-lg bg-white/10 group-hover:bg-[#E8601C]/20 flex items-center justify-center shrink-0 transition-colors">
-                    <Mail size={14} />
+                  <div className="w-10 h-10 rounded-xl bg-white/10 group-hover:bg-primary/20 flex items-center justify-center shrink-0 transition-colors">
+                    <Mail size={16} className="text-primary" />
                   </div>
-                  info@muramsliving.com
+                  <div>
+                    <div className="text-sm font-medium text-white/90">Email</div>
+                    <div className="text-sm">contact@muramsliving.com</div>
+                  </div>
                 </a>
               </li>
               <li>
-                <div className="flex items-start gap-3 text-white/70 text-sm">
-                  <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0">
-                    <MapPin size={14} />
+                <div className="flex items-start gap-4 text-white/70">
+                  <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
+                    <MapPin size={16} className="text-primary" />
                   </div>
                   <div>
-                    Murams Living, Rushikonda,
-                    <br />
-                    Visakhapatnam, Andhra Pradesh,
-                    <br />
-                    India - 530045
+                    <div className="text-sm font-medium text-white/90">Address</div>
+                    <div className="text-sm">
+                      Murams Living, Rushikonda,<br />
+                      Visakhapatnam, AP - 530045
+                    </div>
                   </div>
                 </div>
               </li>
             </ul>
+
+            {/* Map Link */}
+            <a
+              href="https://maps.google.com/?q=Rushikonda,Visakhapatnam"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 mt-6 text-sm text-primary hover:text-primary-light transition-colors"
+            >
+              <span>View on Google Maps</span>
+              <ArrowUpRight size={14} />
+            </a>
           </div>
         </div>
       </div>
 
-      {/* Copyright bar */}
-      <div className="border-t border-white/10">
-        <div className="container-custom py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-sm text-white/50">
-          <p>&copy; {currentYear} Murams Living. All rights reserved.</p>
-          <div className="flex items-center gap-4">
-            <Link href="/privacy" className="hover:text-[#E8601C] transition-colors">
-              Privacy Policy
-            </Link>
-            <span className="text-white/20">|</span>
-            <Link href="/terms" className="hover:text-[#E8601C] transition-colors">
-              Terms of Service
-            </Link>
+      {/* Copyright Bar */}
+      <div className="relative border-t border-white/10">
+        <div className="container-custom py-6">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-white/40">
+            <p>© {currentYear} Murams Living. All rights reserved.</p>
+            <div className="flex items-center gap-6">
+              <Link 
+                href="/privacy" 
+                className="hover:text-white transition-colors"
+              >
+                Privacy Policy
+              </Link>
+              <Link 
+                href="/terms" 
+                className="hover:text-white transition-colors"
+              >
+                Terms of Service
+              </Link>
+            </div>
           </div>
         </div>
       </div>

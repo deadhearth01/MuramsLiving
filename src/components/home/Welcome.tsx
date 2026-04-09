@@ -1,168 +1,159 @@
 "use client";
 
 import { useRef } from "react";
-import { motion } from "framer-motion";
-import { useGSAP } from "@gsap/react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { CheckCircle } from "lucide-react";
-import SectionTitle from "@/components/ui/SectionTitle";
-
-gsap.registerPlugin(ScrollTrigger);
-
-const stats = [
-  { value: "2020", suffix: "", label: "Year Established" },
-  { value: "500", suffix: "+", label: "Happy Residents" },
-  { value: "3", suffix: "", label: "Room Types" },
-  { value: "10", suffix: "+", label: "Premium Amenities" },
-];
+import { motion, useInView } from "framer-motion";
+import {
+  Building2, Layers, Wind, UtensilsCrossed, Sunset, MapPin,
+  ArrowRight, Phone, Star,
+} from "lucide-react";
+import Link from "next/link";
+import { Counter } from "@/components/ui/TextReveal";
+import { AnimatedSection } from "@/components/ui/AnimatedSection";
 
 const highlights = [
-  "New fully-furnished building",
-  "Marble flooring throughout",
-  "A/C & Non-A/C room options",
-  "Home-cooked healthy meals",
-  "Stunning beach view from terrace",
-  "Walking distance to IT companies",
+  { icon: Building2, text: "Modern new building"    },
+  { icon: Layers,    text: "Marble flooring"         },
+  { icon: Wind,      text: "AC & Non-AC rooms"       },
+  { icon: UtensilsCrossed, text: "Home-cooked meals" },
+  { icon: Sunset,    text: "Beach view terrace"      },
+  { icon: MapPin,    text: "Near IT hubs & colleges" },
+];
+
+const stats = [
+  { value: 2020, label: "Year Est.",         prefix: "",  suffix: ""   },
+  { value: 500,  label: "Happy Residents",   prefix: "",  suffix: "+"  },
+  { value: 15,   label: "Amenities",         prefix: "",  suffix: "+"  },
+  { value: 4.8,  label: "Google Rating",     prefix: "",  suffix: "★", decimals: 1 },
 ];
 
 export default function Welcome() {
-  const statsRef = useRef<HTMLDivElement>(null);
-
-  useGSAP(() => {
-    if (!statsRef.current) return;
-    const counters = statsRef.current.querySelectorAll(".stat-count");
-    counters.forEach((counter) => {
-      const target = parseInt(counter.getAttribute("data-target") || "0", 10);
-      const suffix = counter.getAttribute("data-suffix") || "";
-      gsap.from(counter, {
-        innerText: 0,
-        duration: 2,
-        ease: "power2.out",
-        snap: { innerText: 1 },
-        scrollTrigger: {
-          trigger: counter,
-          start: "top 85%",
-          once: true,
-        },
-        onUpdate() {
-          (counter as HTMLElement).innerText =
-            Math.round(parseFloat((counter as HTMLElement).innerText)).toString() + suffix;
-        },
-        onComplete() {
-          (counter as HTMLElement).innerText = target.toString() + suffix;
-        },
-      });
-    });
-  }, []);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isInView = useInView(containerRef, { once: true, margin: "-100px" });
 
   return (
-    <section className="section-padding bg-white">
+    <section className="py-24 lg:py-32 bg-white relative" ref={containerRef}>
       <div className="container-custom">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-          {/* Left: Text */}
-          <div>
-            <SectionTitle
-              eyebrow="Welcome to Murams Living"
-              title="Your Home Away "
-              highlight="From Home"
-              description="At Murams Living, we believe that where you stay matters as much as where you work or study. Nestled in the beautiful coastal area of Rushikonda, Visakhapatnam, we offer a premium living experience that combines comfort, safety, and community."
-            />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-20 items-start">
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8"
-            >
-              {highlights.map((item, index) => (
-                <div
-                  key={index}
-                  className="flex items-center gap-2.5 text-sm text-gray-700"
-                >
-                  <CheckCircle
-                    size={17}
-                    className="text-[#E8601C] shrink-0"
-                  />
-                  {item}
+          {/* ── Left: Stats panel ─────────────────────────────────── */}
+          <AnimatedSection animation="fadeRight" className="lg:col-span-5 order-2 lg:order-1">
+            {/* Top info block */}
+            <div className="bg-navy rounded-2xl p-7 mb-4 text-white">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
+                  <MapPin size={18} className="text-primary" />
                 </div>
-              ))}
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="flex flex-col sm:flex-row gap-3"
-            >
-              <a href="/about" className="btn-primary">
-                Learn More About Us
-              </a>
-              <a href="tel:+917816055655" className="btn-outline">
-                Book a Visit
-              </a>
-            </motion.div>
-          </div>
-
-          {/* Right: Stats grid */}
-          <div ref={statsRef}>
-            {/* Feature image placeholder */}
-            <div className="relative mb-8">
-              <div
-                className="w-full h-56 md:h-64 rounded-2xl overflow-hidden"
-                style={{
-                  background:
-                    "linear-gradient(135deg, #1A2E5A 0%, #E8601C 100%)",
-                }}
-              >
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center text-white">
-                    <div className="font-heading text-5xl font-bold mb-2 opacity-30">
-                      ML
-                    </div>
-                    <p className="text-white/60 text-sm">
-                      Murams Living — Rushikonda
-                    </p>
-                  </div>
+                <div>
+                  <p className="font-semibold text-sm text-white">Rushikonda, Visakhapatnam</p>
+                  <p className="text-white/50 text-xs">Andhra Pradesh — 530045</p>
                 </div>
-                {/* Decorative shapes */}
-                <div className="absolute top-4 right-4 w-20 h-20 rounded-full bg-white/10" />
-                <div className="absolute bottom-4 left-4 w-12 h-12 rounded-full bg-white/10" />
               </div>
-              {/* Floating badge */}
-              <div className="absolute -bottom-4 -right-4 bg-[#E8601C] text-white px-4 py-3 rounded-xl shadow-lg">
-                <div className="font-heading font-bold text-xl">4.8★</div>
-                <div className="text-xs opacity-90">Resident Rating</div>
-              </div>
+              <p className="text-white/60 text-sm leading-relaxed">
+                Located steps from the beach, surrounded by IT parks and colleges.
+                The best spot to live, study, and grow in Vizag.
+              </p>
             </div>
 
-            {/* Stats */}
+            {/* Stats grid */}
             <div className="grid grid-cols-2 gap-4">
-              {stats.map((stat, index) => (
+              {stats.map((stat, i) => (
                 <motion.div
                   key={stat.label}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className="bg-[#FFF8F5] rounded-2xl p-5 text-center"
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={isInView ? { opacity: 1, y: 0 } : {}}
+                  transition={{ delay: 0.2 + i * 0.08, duration: 0.5 }}
+                  className="bg-surface-secondary border border-gray-100 rounded-2xl p-5"
                 >
-                  <div className="flex items-end justify-center gap-0.5">
-                    <span
-                      className="stat-count stat-number text-3xl"
-                      data-target={stat.value}
-                      data-suffix={stat.suffix}
-                    >
-                      {stat.value}
-                      {stat.suffix}
-                    </span>
+                  <div className="font-heading font-bold text-2xl lg:text-3xl text-navy mb-1 leading-none">
+                    {stat.prefix}
+                    {isInView && (
+                      <Counter
+                        from={0}
+                        to={stat.value}
+                        duration={2}
+                        delay={0.3 + i * 0.08}
+                        decimals={stat.decimals}
+                      />
+                    )}
+                    <span className="text-primary">{stat.suffix}</span>
                   </div>
-                  <p className="text-gray-600 text-sm mt-1">{stat.label}</p>
+                  <p className="text-text-secondary text-xs font-medium">{stat.label}</p>
                 </motion.div>
               ))}
             </div>
+
+            {/* Google rating strip */}
+            <motion.a
+              href="https://maps.app.goo.gl/4nWFLswApRBM9YB87"
+              target="_blank"
+              rel="noopener noreferrer"
+              initial={{ opacity: 0 }}
+              animate={isInView ? { opacity: 1 } : {}}
+              transition={{ delay: 0.6 }}
+              className="flex items-center gap-3 mt-4 p-4 border border-gray-100 rounded-xl hover:border-primary/30 hover:bg-primary/3 transition-all group"
+            >
+              <div className="flex gap-0.5">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} size={14} className="fill-amber-400 text-amber-400" />
+                ))}
+              </div>
+              <span className="text-sm font-semibold text-navy">4.8 on Google Reviews</span>
+              <ArrowRight size={14} className="text-primary ml-auto group-hover:translate-x-1 transition-transform" />
+            </motion.a>
+          </AnimatedSection>
+
+          {/* ── Right: Content ────────────────────────────────────── */}
+          <div className="lg:col-span-7 order-1 lg:order-2">
+            <AnimatedSection animation="fadeLeft" delay={0.1}>
+              <p className="text-primary font-semibold text-sm uppercase tracking-[0.15em] mb-4">
+                Welcome to Murams Living
+              </p>
+
+              <h2 className="font-heading text-4xl lg:text-5xl font-bold text-navy mb-6 leading-tight">
+                More than a room —<br />
+                a real home in Vizag.
+              </h2>
+
+              <p className="text-text-secondary text-base lg:text-lg leading-relaxed mb-8 max-w-xl">
+                Nestled in the coastal haven of Rushikonda, Murams Living is designed for
+                students and professionals who want more than four walls. Thoughtful amenities,
+                home-cooked food, round-the-clock security, and a community that makes
+                every day feel grounded.
+              </p>
+
+              {/* Features grid — icons, no emojis */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-8">
+                {highlights.map(({ icon: Icon, text }) => (
+                  <div
+                    key={text}
+                    className="flex items-center gap-2.5 p-3 rounded-xl border border-gray-100 hover:border-primary/20 hover:bg-primary/3 transition-all"
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-primary/8 flex items-center justify-center flex-shrink-0">
+                      <Icon size={14} className="text-primary" />
+                    </div>
+                    <span className="text-sm font-medium text-navy leading-tight">{text}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* CTAs */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Link
+                  href="/about"
+                  className="group inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-navy text-white font-semibold rounded-xl hover:bg-navy-dark transition-all duration-300 text-sm"
+                >
+                  About Murams Living
+                  <ArrowRight size={15} className="group-hover:translate-x-0.5 transition-transform" />
+                </Link>
+                <a
+                  href="tel:+917816055655"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 border-2 border-gray-200 text-navy font-semibold rounded-xl hover:border-primary hover:text-primary transition-all duration-300 text-sm"
+                >
+                  <Phone size={15} />
+                  Schedule a Visit
+                </a>
+              </div>
+            </AnimatedSection>
           </div>
         </div>
       </div>

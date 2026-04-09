@@ -1,173 +1,234 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
-  Users,
-  Utensils,
-  Shield,
-  Sparkles,
-  BedDouble,
-  BedSingle,
+  Users, Utensils, Shield, Wifi, Wind, Check, ArrowRight, Phone,
+  BedDouble, BedSingle, Sparkles,
 } from "lucide-react";
-import SectionTitle from "@/components/ui/SectionTitle";
+import Link from "next/link";
+import { AnimatedSection } from "@/components/ui/AnimatedSection";
+import { createClient } from "@/utils/supabase/client";
 
-const rooms = [
+const defaultPrices: Record<string, string> = {
+  "2-Sharing Room": "₹8,000",
+  "3-Sharing Room": "₹6,500",
+  "4-Sharing Room": "₹5,500",
+};
+
+const roomTypesDef = [
   {
-    icon: <BedDouble size={28} />,
-    title: "Double Occupancy",
+    id: "double",
+    Icon: BedDouble,
+    title: "Double Sharing",
     beds: 2,
-    description:
-      "Spacious rooms designed for two residents with individual storage, comfortable beds, and shared amenities in a harmonious environment.",
-    features: ["2 Comfortable Beds", "Individual Cupboards", "Shared Bathroom", "Study Desk"],
-    color: "from-blue-500/10 to-blue-600/5",
-    iconBg: "#1A2E5A",
+    priceKey: "2-Sharing Room",
+    description: "Spacious rooms for two — ideal for those who value extra space and a quieter environment.",
+    features: [
+      "2 comfortable beds",
+      "Personal wardrobe",
+      "Study table & chair",
+      "Attached / common bathroom",
+      "Air conditioning",
+      "High-speed WiFi",
+    ],
+    priceNote: "/month onwards",
+    popular: false,
+    accent: "border-gray-100",
+    priceColor: "text-navy",
   },
   {
-    icon: <Users size={28} />,
-    title: "Triple Occupancy",
+    id: "triple",
+    Icon: Users,
+    title: "Triple Sharing",
     beds: 3,
-    description:
-      "Well-planned rooms accommodating three residents with smart space utilization, ample storage, and all essential amenities included.",
-    features: ["3 Single Beds", "3 Cupboards", "Common Bathroom", "WiFi Included"],
-    color: "from-orange-500/10 to-orange-600/5",
-    iconBg: "#E8601C",
+    priceKey: "3-Sharing Room",
+    description: "Our most-requested option. The right balance of affordability, company, and personal space.",
+    features: [
+      "3 single beds",
+      "Individual storage",
+      "Study space",
+      "Common bathroom",
+      "AC available",
+      "Free WiFi",
+    ],
+    priceNote: "/month onwards",
     popular: true,
+    accent: "border-primary/30 ring-1 ring-primary/10",
+    priceColor: "text-primary",
   },
   {
-    icon: <BedSingle size={28} />,
-    title: "Quadruple Occupancy",
+    id: "quad",
+    Icon: BedSingle,
+    title: "Four Sharing",
     beds: 4,
-    description:
-      "Budget-friendly option for four residents featuring bunk beds or single beds, individual storage space, and all shared facilities.",
-    features: ["4 Single Beds", "Individual Storage", "Common Bathroom", "Cost Effective"],
-    color: "from-green-500/10 to-green-600/5",
-    iconBg: "#2A6049",
-  },
-  {
-    icon: <Utensils size={28} />,
-    title: "Healthy Food",
-    beds: 0,
-    description:
-      "Enjoy nutritious, home-cooked Indian meals prepared fresh every day. Breakfast, lunch, and dinner included with all room packages.",
-    features: ["3 Meals / Day", "Home-Cooked", "Hygienic Kitchen", "Vegetarian Options"],
-    color: "from-yellow-500/10 to-yellow-600/5",
-    iconBg: "#B5770D",
-  },
-  {
-    icon: <Shield size={28} />,
-    title: "24/7 Security",
-    beds: 0,
-    description:
-      "Feel completely safe with round-the-clock security guards, CCTV surveillance, and bio-metric entry systems at all access points.",
-    features: ["CCTV Cameras", "Bio-metric Access", "Security Guards", "Visitor Log"],
-    color: "from-red-500/10 to-red-600/5",
-    iconBg: "#C0392B",
-  },
-  {
-    icon: <Sparkles size={28} />,
-    title: "House Cleaning",
-    beds: 0,
-    description:
-      "Our dedicated housekeeping team ensures your room and all common areas are cleaned daily, maintaining the highest standards of hygiene.",
-    features: ["Daily Cleaning", "Common Areas", "Hygienic Standards", "Fresh Linen"],
-    color: "from-purple-500/10 to-purple-600/5",
-    iconBg: "#6B35A8",
+    priceKey: "4-Sharing Room",
+    description: "Best value for budget-conscious residents. All essential amenities without compromise.",
+    features: [
+      "4 single beds",
+      "Shared storage",
+      "Fan / AC options",
+      "Common bathroom",
+      "Free WiFi",
+      "All meals included",
+    ],
+    priceNote: "/month onwards",
+    popular: false,
+    accent: "border-gray-100",
+    priceColor: "text-navy",
   },
 ];
 
-const containerVariants = {
-  hidden: {},
-  visible: {
-    transition: {
-      staggerChildren: 0.1,
-    },
-  },
-};
-
-const cardVariants = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
-};
+const included = [
+  { icon: Utensils, label: "3 Meals / Day",   sub: "Home-cooked"    },
+  { icon: Shield,   label: "24/7 Security",   sub: "CCTV + Guards"  },
+  { icon: Sparkles, label: "Housekeeping",    sub: "Daily cleaning" },
+  { icon: Wifi,     label: "High-Speed WiFi", sub: "Unlimited"      },
+  { icon: Wind,     label: "Hot Water",       sub: "24/7 available" },
+];
 
 export default function RoomTypes() {
-  return (
-    <section className="section-padding bg-[#FFF8F5]">
-      <div className="container-custom">
-        <SectionTitle
-          eyebrow="Our Offerings"
-          title="Rooms & "
-          highlight="Services"
-          description="Choose the accommodation that best suits your needs and budget. All rooms include our premium amenities and services."
-          centered
-        />
+  const [prices, setPrices] = useState<Record<string, string>>(defaultPrices);
 
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-50px" }}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-        >
-          {rooms.map((room) => (
+  useEffect(() => {
+    (async () => {
+      try {
+        const supabase = createClient();
+        const { data } = await supabase
+          .from("pricing_config")
+          .select("item_name, amount")
+          .eq("category", "student")
+          .eq("is_visible", true)
+          .order("display_order");
+        if (data && data.length > 0) {
+          const map: Record<string, string> = {};
+          data.forEach((d) => {
+            map[d.item_name] = `₹${Number(d.amount).toLocaleString("en-IN")}`;
+          });
+          setPrices((prev) => ({ ...prev, ...map }));
+        }
+      } catch { /* fallback to defaults */ }
+    })();
+  }, []);
+
+  const roomTypes = roomTypesDef.map((r) => ({
+    ...r,
+    price: prices[r.priceKey] || defaultPrices[r.priceKey] || "₹0",
+  }));
+
+  return (
+    <section className="py-24 lg:py-32 bg-surface-secondary relative overflow-hidden">
+      <div className="container-custom">
+        {/* Header */}
+        <AnimatedSection className="max-w-2xl mb-14 lg:mb-16">
+          <p className="text-primary font-semibold text-sm uppercase tracking-[0.15em] mb-4">
+            Accommodation Options
+          </p>
+          <h2 className="font-heading text-4xl lg:text-5xl font-bold text-navy mb-5">
+            Find the right room for you.
+          </h2>
+          <p className="text-text-secondary text-lg">
+            Flexible room types for every budget. Every option includes our full suite
+            of amenities — no hidden extras.
+          </p>
+        </AnimatedSection>
+
+        {/* Room Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 mb-12">
+          {roomTypes.map((room, i) => (
             <motion.div
-              key={room.title}
-              variants={cardVariants}
-              whileHover={{ y: -6, boxShadow: "0 20px 40px rgba(232, 96, 28, 0.15)" }}
-              className={`relative bg-white rounded-2xl p-6 border border-gray-100 cursor-default group transition-all duration-300`}
+              key={room.id}
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1, duration: 0.5 }}
+              className={`relative bg-white rounded-2xl border-2 ${room.accent} p-7 flex flex-col shadow-soft hover:shadow-soft-md transition-all duration-300`}
             >
+              {/* Popular badge */}
               {room.popular && (
-                <div className="absolute -top-3 left-6 bg-[#E8601C] text-white text-xs font-semibold px-3 py-1 rounded-full">
+                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-primary text-white text-xs font-bold px-4 py-1 rounded-full shadow-sm whitespace-nowrap">
                   Most Popular
                 </div>
               )}
 
-              {/* Icon */}
-              <div
-                className="icon-ring mb-5 group-hover:!bg-gradient-to-br group-hover:from-[#E8601C] group-hover:to-[#F4845F]"
-              >
-                <span
-                  className="text-[#E8601C] group-hover:text-white transition-colors"
-                  style={{ display: "flex" }}
-                >
-                  {room.icon}
-                </span>
+              {/* Icon + title */}
+              <div className="flex items-start gap-4 mb-5">
+                <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${room.popular ? "bg-primary/10" : "bg-navy/5"}`}>
+                  <room.Icon size={20} className={room.popular ? "text-primary" : "text-navy"} />
+                </div>
+                <div>
+                  <h3 className="font-heading font-bold text-lg text-navy leading-tight">{room.title}</h3>
+                  <p className="text-text-secondary text-xs mt-0.5">{room.beds}-bed room</p>
+                </div>
               </div>
 
-              <h3 className="font-heading font-bold text-xl text-[#1A2E5A] mb-2">
-                {room.title}
-              </h3>
-              {room.beds > 0 && (
-                <span className="inline-block text-xs font-semibold text-[#E8601C] bg-[#E8601C]/10 px-2 py-0.5 rounded-full mb-3">
-                  {room.beds} Beds
-                </span>
-              )}
-              <p className="text-gray-600 text-sm leading-relaxed mb-4">
-                {room.description}
-              </p>
+              <p className="text-text-secondary text-sm leading-relaxed mb-6">{room.description}</p>
 
-              <ul className="space-y-2">
-                {room.features.map((feature) => (
-                  <li
-                    key={feature}
-                    className="flex items-center gap-2 text-sm text-gray-600"
-                  >
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#E8601C] shrink-0" />
-                    {feature}
+              {/* Features */}
+              <ul className="space-y-2 mb-7 flex-1">
+                {room.features.map((f) => (
+                  <li key={f} className="flex items-center gap-2.5 text-sm text-navy">
+                    <Check size={13} className="text-primary flex-shrink-0" />
+                    {f}
                   </li>
                 ))}
               </ul>
+
+              {/* Price + CTA */}
+              <div className="border-t border-gray-100 pt-5">
+                <div className="flex items-end justify-between mb-4">
+                  <div>
+                    <span className={`font-heading font-bold text-2xl ${room.priceColor}`}>{room.price}</span>
+                    <span className="text-text-secondary text-xs ml-1">{room.priceNote}</span>
+                  </div>
+                </div>
+                <a
+                  href="tel:+917816055655"
+                  className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold transition-all duration-300 ${
+                    room.popular
+                      ? "bg-primary text-white hover:bg-primary-dark shadow-sm hover:shadow-glow"
+                      : "bg-navy/5 text-navy hover:bg-navy hover:text-white"
+                  }`}
+                >
+                  <Phone size={14} />
+                  Check Availability
+                </a>
+              </div>
             </motion.div>
           ))}
-        </motion.div>
-
-        <div className="text-center mt-10">
-          <a
-            href="tel:+917816055655"
-            className="btn-primary inline-flex"
-          >
-            Inquire About Availability
-          </a>
         </div>
+
+        {/* Included services */}
+        <AnimatedSection delay={0.3}>
+          <div className="bg-white rounded-2xl border border-gray-100 p-7 lg:p-9 shadow-soft">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-7">
+              <div>
+                <h3 className="font-heading font-bold text-lg text-navy">Included with every room</h3>
+                <p className="text-text-muted text-sm mt-0.5">No surprise charges.</p>
+              </div>
+              <Link
+                href="/book"
+                className="group inline-flex items-center gap-2 text-primary text-sm font-semibold hover:underline shrink-0"
+              >
+                Book a room
+                <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5">
+              {included.map(({ icon: Icon, label, sub }) => (
+                <div key={label} className="flex items-center gap-3 sm:flex-col sm:items-center sm:text-center">
+                  <div className="w-10 h-10 rounded-xl bg-primary/8 flex items-center justify-center flex-shrink-0 sm:mb-2">
+                    <Icon size={18} className="text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-navy text-sm leading-tight">{label}</p>
+                    <p className="text-text-muted text-xs mt-0.5">{sub}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </AnimatedSection>
       </div>
     </section>
   );

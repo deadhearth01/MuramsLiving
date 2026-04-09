@@ -2,24 +2,42 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ZoomIn } from "lucide-react";
-import SectionTitle from "@/components/ui/SectionTitle";
+import { X, ZoomIn, Phone } from "lucide-react";
+import { AnimatedSection } from "@/components/ui/AnimatedSection";
 
-const categories = ["All", "Rooms", "Common Areas", "Dining", "Terrace", "Exterior"];
+const categories = ["All", "Rooms", "Common Areas", "Views", "Exterior"];
 
 const galleryItems = [
-  { id: 1, title: "Double Occupancy Room", category: "Rooms", color: "from-[#1A2E5A] to-[#2A4A8A]", span: "col-span-2 row-span-2" },
-  { id: 2, title: "Triple Occupancy Room", category: "Rooms", color: "from-[#0F1C38] to-[#1A2E5A]", span: "col-span-1 row-span-1" },
-  { id: 3, title: "Room View", category: "Rooms", color: "from-[#1A2E5A] to-[#0F1C38]", span: "col-span-1 row-span-1" },
-  { id: 4, title: "Dining Hall", category: "Dining", color: "from-[#E8601C] to-[#F4845F]", span: "col-span-2 row-span-1" },
-  { id: 5, title: "Kitchen Area", category: "Dining", color: "from-[#C44E0E] to-[#E8601C]", span: "col-span-1 row-span-2" },
-  { id: 6, title: "Common Lounge", category: "Common Areas", color: "from-[#2A4A8A] to-[#1A2E5A]", span: "col-span-1 row-span-1" },
-  { id: 7, title: "Study Area", category: "Common Areas", color: "from-[#1A2E5A] to-[#2A6049]", span: "col-span-1 row-span-1" },
-  { id: 8, title: "Beach View Terrace", category: "Terrace", color: "from-[#E8601C] to-[#1A2E5A]", span: "col-span-2 row-span-2" },
-  { id: 9, title: "Terrace Evening View", category: "Terrace", color: "from-[#F4845F] to-[#E8601C]", span: "col-span-1 row-span-1" },
-  { id: 10, title: "Building Exterior", category: "Exterior", color: "from-[#0F1C38] to-[#2A4A8A]", span: "col-span-1 row-span-1" },
-  { id: 11, title: "Entrance", category: "Exterior", color: "from-[#1A2E5A] to-[#E8601C]", span: "col-span-1 row-span-1" },
-  { id: 12, title: "Parking Area", category: "Exterior", color: "from-[#2A4A8A] to-[#1A2E5A]", span: "col-span-1 row-span-1" },
+  { id: 1,  src: "/clicks/077b49fa-bcf4-4a4b-b13d-c97087b50380.JPG", title: "Beach View", category: "Views" },
+  { id: 2,  src: "/clicks/4350f887-b2b6-4241-8c50-027772939d25.JPG", title: "Premium Room", category: "Rooms" },
+  { id: 3,  src: "/clicks/IMG_0383.jpg", title: "Building Interior", category: "Common Areas" },
+  { id: 4,  src: "/clicks/IMG_0384.jpg", title: "Room View", category: "Rooms" },
+  { id: 5,  src: "/clicks/IMG_0385.jpg", title: "Common Area", category: "Common Areas" },
+  { id: 6,  src: "/clicks/IMG_0386.jpg", title: "Amenities", category: "Common Areas" },
+  { id: 7,  src: "/clicks/IMG_0387.jpg", title: "Room Interior", category: "Rooms" },
+  { id: 8,  src: "/clicks/IMG_0388.jpg", title: "Facilities", category: "Common Areas" },
+  { id: 9,  src: "/clicks/IMG_0389.jpg", title: "Corridor", category: "Common Areas" },
+  { id: 10, src: "/clicks/IMG_0390.jpg", title: "Terrace Area", category: "Views" },
+  { id: 11, src: "/clicks/IMG_0391.jpg", title: "Building View", category: "Exterior" },
+  { id: 12, src: "/clicks/IMG_0392.jpg", title: "Room Setup", category: "Rooms" },
+  { id: 13, src: "/clicks/IMG_0393.jpg", title: "Storage Space", category: "Rooms" },
+  { id: 14, src: "/clicks/IMG_0394.jpg", title: "Common Lounge", category: "Common Areas" },
+  { id: 15, src: "/clicks/IMG_0395.jpg", title: "Building Entrance", category: "Exterior" },
+  { id: 16, src: "/clicks/IMG_0396.jpg", title: "Room Amenities", category: "Rooms" },
+  { id: 17, src: "/clicks/IMG_0397.jpg", title: "Shared Space", category: "Common Areas" },
+  { id: 18, src: "/clicks/IMG_0398.jpg", title: "Evening View", category: "Views" },
+  { id: 19, src: "/clicks/IMG_0399.jpg", title: "Building Exterior", category: "Exterior" },
+  { id: 20, src: "/clicks/IMG_0400.jpg", title: "Bedroom", category: "Rooms" },
+  { id: 21, src: "/clicks/IMG_0401.jpg", title: "Room Furnishings", category: "Rooms" },
+  { id: 22, src: "/clicks/IMG_0402.jpg", title: "Hallway", category: "Common Areas" },
+  { id: 23, src: "/clicks/IMG_0403.jpg", title: "Outside View", category: "Views" },
+  { id: 24, src: "/clicks/IMG_0404.jpg", title: "Parking Area", category: "Exterior" },
+  { id: 25, src: "/clicks/IMG_0405.jpg", title: "Study Corner", category: "Rooms" },
+  { id: 26, src: "/clicks/IMG_0406.jpg", title: "Lounge Area", category: "Common Areas" },
+  { id: 27, src: "/clicks/IMG_0407.jpg", title: "Surroundings", category: "Views" },
+  { id: 28, src: "/clicks/IMG_0408.jpg", title: "Room Detail", category: "Rooms" },
+  { id: 29, src: "/clicks/IMG_0409.jpg", title: "Utilities", category: "Common Areas" },
+  { id: 30, src: "/clicks/IMG_0410.jpg", title: "Building Side", category: "Exterior" },
 ];
 
 export default function GalleryPageClient() {
@@ -32,107 +50,81 @@ export default function GalleryPageClient() {
       : galleryItems.filter((item) => item.category === activeCategory);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-white">
       {/* Page Hero */}
-      <section
-        className="py-20 md:py-28 relative overflow-hidden"
-        style={{
-          background:
-            "linear-gradient(135deg, #0F1C38 0%, #1A2E5A 50%, #2A1A0E 100%)",
-        }}
-      >
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-10 right-10 w-64 h-64 rounded-full bg-[#E8601C]" />
-          <div className="absolute bottom-10 left-10 w-48 h-48 rounded-full bg-[#F4845F]" />
-        </div>
-        <div className="container-custom relative z-10 text-center">
-          <motion.span
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="inline-block bg-[#E8601C]/20 border border-[#E8601C]/30 text-[#F4845F] text-xs font-semibold px-4 py-1.5 rounded-full mb-4"
-          >
-            Visual Tour
-          </motion.span>
-          <motion.h1
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.1 }}
-            className="font-heading font-bold text-4xl md:text-5xl lg:text-6xl text-white mb-4"
-          >
-            Photo{" "}
-            <span className="gradient-text">Gallery</span>
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-white/80 text-lg max-w-2xl mx-auto"
-          >
-            Take a virtual tour of our premium facilities, rooms, and beautiful
-            surroundings at Murams Living.
-          </motion.p>
+      <section className="py-20 md:py-28 bg-navy-dark relative overflow-hidden">
+        <div
+          className="absolute inset-0 opacity-[0.04]"
+          style={{
+            backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
+            backgroundSize: "32px 32px",
+          }}
+        />
+        <div className="container-custom relative z-10 max-w-3xl">
+          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
+            <p className="text-primary font-semibold text-sm uppercase tracking-[0.15em] mb-4">Visual Tour</p>
+            <h1 className="font-heading font-bold text-4xl md:text-5xl lg:text-6xl text-white mb-5 leading-tight">
+              Photo Gallery
+            </h1>
+            <p className="text-white/65 text-lg">
+              Take a virtual tour of our premium facilities, rooms, and beautiful surroundings at Murams Living.
+            </p>
+          </motion.div>
         </div>
       </section>
 
       {/* Gallery */}
-      <section className="section-padding bg-white">
+      <section className="py-16 lg:py-20 bg-white">
         <div className="container-custom">
           {/* Category Filter */}
-          <div className="flex flex-wrap justify-center gap-2 mb-10">
+          <AnimatedSection className="flex flex-wrap gap-2 mb-10">
             {categories.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
-                className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${
+                className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
                   activeCategory === cat
-                    ? "bg-[#E8601C] text-white shadow-md"
-                    : "bg-gray-100 text-gray-600 hover:bg-[#E8601C]/10 hover:text-[#E8601C]"
+                    ? "bg-navy text-white shadow-sm"
+                    : "bg-surface-secondary text-text-secondary hover:bg-surface-tertiary"
                 }`}
               >
                 {cat}
               </button>
             ))}
-          </div>
+          </AnimatedSection>
 
-          {/* Gallery Grid */}
-          <motion.div
-            layout
-            className="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4"
-          >
+          {/* Masonry Grid */}
+          <motion.div layout className="columns-1 sm:columns-2 lg:columns-3 gap-4">
             <AnimatePresence>
               {filteredItems.map((item, index) => (
                 <motion.div
                   key={item.id}
                   layout
-                  initial={{ opacity: 0, scale: 0.9 }}
+                  initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.4, delay: index * 0.05 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.35, delay: index * 0.03 }}
                   className="break-inside-avoid mb-4 cursor-pointer group"
                   onClick={() => setSelectedItem(item)}
                 >
-                  <div
-                    className={`relative rounded-xl overflow-hidden ${
-                      index % 3 === 0 ? "h-64" : index % 3 === 1 ? "h-48" : "h-56"
-                    } bg-gradient-to-br ${item.color}`}
-                  >
+                  <div className="relative rounded-xl overflow-hidden">
+                    <img
+                      src={item.src}
+                      alt={item.title}
+                      className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
+                      loading="lazy"
+                    />
                     {/* Hover overlay */}
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-center justify-center">
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center gap-2 text-white">
-                        <ZoomIn size={28} />
-                        <span className="text-sm font-medium">View</span>
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-end justify-start p-4">
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <p className="text-white font-medium text-sm">{item.title}</p>
+                        <span className="text-white/70 text-xs">{item.category}</span>
                       </div>
-                    </div>
-                    {/* Label */}
-                    <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/60 to-transparent">
-                      <p className="text-white text-sm font-medium">{item.title}</p>
-                      <span className="text-white/70 text-xs">{item.category}</span>
-                    </div>
-                    {/* Decorative elements */}
-                    <div className="absolute top-4 right-4 w-16 h-16 rounded-full bg-white/10" />
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-heading text-4xl font-bold text-white/10">
-                      ML
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 absolute top-4 right-4">
+                        <div className="w-9 h-9 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                          <ZoomIn size={16} className="text-white" />
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </motion.div>
@@ -141,9 +133,7 @@ export default function GalleryPageClient() {
           </motion.div>
 
           {filteredItems.length === 0 && (
-            <div className="text-center py-20 text-gray-400">
-              No photos in this category yet.
-            </div>
+            <div className="text-center py-20 text-text-secondary">No photos in this category.</div>
           )}
         </div>
       </section>
@@ -155,38 +145,33 @@ export default function GalleryPageClient() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4"
+            className="fixed inset-0 z-[100] bg-black/92 flex items-center justify-center p-4"
             onClick={() => setSelectedItem(null)}
           >
             <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
+              initial={{ scale: 0.85, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-              transition={{ type: "spring", duration: 0.4 }}
-              className="relative max-w-2xl w-full rounded-2xl overflow-hidden"
+              exit={{ scale: 0.85, opacity: 0 }}
+              transition={{ type: "spring", duration: 0.4, bounce: 0.15 }}
+              className="relative max-w-4xl w-full rounded-2xl overflow-hidden shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-              <div
-                className={`h-80 md:h-96 w-full bg-gradient-to-br ${selectedItem.color} flex items-center justify-center`}
-              >
-                <div className="text-center text-white">
-                  <div className="font-heading text-6xl font-bold opacity-20">ML</div>
-                  <p className="text-white/70 text-sm mt-4">{selectedItem.title}</p>
-                </div>
-              </div>
-              <div className="bg-white p-4 flex items-center justify-between">
-                <div>
-                  <h3 className="font-heading font-semibold text-[#1A2E5A]">
-                    {selectedItem.title}
-                  </h3>
-                  <span className="text-[#E8601C] text-xs">{selectedItem.category}</span>
-                </div>
+              <img
+                src={selectedItem.src}
+                alt={selectedItem.title}
+                className="w-full h-auto max-h-[80vh] object-contain bg-black"
+              />
+              <div className="absolute top-4 right-4">
                 <button
                   onClick={() => setSelectedItem(null)}
-                  className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
+                  className="w-9 h-9 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center hover:bg-black/70 transition-colors"
                 >
-                  <X size={16} />
+                  <X size={16} className="text-white" />
                 </button>
+              </div>
+              <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
+                <p className="text-white font-medium">{selectedItem.title}</p>
+                <span className="text-white/60 text-xs">{selectedItem.category}</span>
               </div>
             </motion.div>
           </motion.div>
@@ -194,18 +179,21 @@ export default function GalleryPageClient() {
       </AnimatePresence>
 
       {/* CTA */}
-      <section className="py-16 bg-[#FFF8F5]">
-        <div className="container-custom text-center">
-          <h2 className="font-heading font-bold text-3xl text-[#1A2E5A] mb-4">
-            Want to See More?
-          </h2>
-          <p className="text-gray-600 mb-8 max-w-xl mx-auto">
-            Visit us in person and experience Murams Living for yourself. We
-            offer free guided tours of our facilities.
-          </p>
-          <a href="tel:+917816055655" className="btn-primary inline-flex">
-            Schedule a Visit
-          </a>
+      <section className="py-16 bg-surface-secondary">
+        <div className="container-custom text-center max-w-xl mx-auto">
+          <AnimatedSection>
+            <h2 className="font-heading font-bold text-2xl text-navy mb-3">Want to See It in Person?</h2>
+            <p className="text-text-secondary mb-6">
+              Visit us in Rushikonda and experience Murams Living for yourself. We offer free guided tours.
+            </p>
+            <a
+              href="tel:+917816055655"
+              className="inline-flex items-center gap-2 bg-primary hover:bg-primary-dark text-white font-semibold px-8 py-4 rounded-xl transition-all"
+            >
+              <Phone size={17} />
+              Schedule a Visit
+            </a>
+          </AnimatedSection>
         </div>
       </section>
     </div>
