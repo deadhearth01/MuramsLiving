@@ -104,13 +104,13 @@ export default function Hero() {
             href="https://maps.app.goo.gl/4nWFLswApRBM9YB87"
             target="_blank"
             rel="noopener noreferrer"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
-            className="absolute bottom-8 right-6 sm:right-10 lg:right-16 z-20 flex items-center gap-2.5 bg-black/50 backdrop-blur-md px-4 py-3 rounded-2xl border border-white/15 shadow-xl hover:bg-black/60 transition-colors cursor-pointer"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.8, ease: "easeOut" }}
+            className="absolute bottom-20 sm:bottom-24 right-6 sm:right-10 lg:right-16 z-20 flex items-center gap-3 bg-white/95 backdrop-blur-md px-4 py-3 rounded-2xl shadow-2xl border border-white/50 hover:bg-white transition-all duration-300 cursor-pointer group"
           >
-            <div className="bg-white p-1.5 rounded-full flex-shrink-0">
-              <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <div className="bg-white rounded-xl p-1.5 flex-shrink-0 shadow-sm">
+              <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                 <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
                 <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
@@ -118,11 +118,15 @@ export default function Hero() {
               </svg>
             </div>
             <div>
-              <p className="text-white/60 text-[10px] uppercase tracking-wider leading-none mb-0.5">Google Reviews</p>
+              <p className="text-gray-500 text-[10px] uppercase tracking-wider leading-none mb-1">Google Reviews</p>
               <div className="flex items-center gap-1.5">
-                <span className="text-white font-bold text-sm">4.9</span>
-                <span className="text-yellow-400 text-xs tracking-tight">★★★★★</span>
+                <span className="text-gray-900 font-bold text-sm leading-none">4.6</span>
+                <div className="flex gap-0.5">
+                  {[1,2,3,4].map(i => <span key={i} className="text-amber-400 text-xs">★</span>)}
+                  <span className="text-amber-400 text-xs opacity-60">★</span>
+                </div>
               </div>
+              <p className="text-gray-400 text-[10px] mt-0.5">See all reviews →</p>
             </div>
           </motion.a>
         )}

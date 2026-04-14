@@ -16,7 +16,11 @@ interface Booking {
   check_in_date: string;
   check_in_time: string;
   preferred_building: string;
+  preferred_room_type: string;
   selected_room_no: string;
+  booking_type: string;
+  adults: number;
+  children: number;
   status: string;
   notes: string;
   admin_notes: string;
@@ -272,9 +276,9 @@ export default function BookingsPage() {
                     <td className="px-5 py-4">
                       <button
                         onClick={() => { setSelectedBooking(booking); setAdminNotes(booking.admin_notes || ""); }}
-                        className="text-xs font-medium text-primary hover:text-primary-dark transition-colors"
+                        className="text-xs font-medium text-primary hover:text-primary-dark transition-colors whitespace-nowrap"
                       >
-                        Manage
+                        View / Manage
                       </button>
                     </td>
                   </tr>
@@ -288,36 +292,100 @@ export default function BookingsPage() {
       {/* Detail Modal */}
       {selectedBooking && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
-            <div className="p-6 border-b border-gray-100 flex items-center justify-between">
-              <h3 className="font-bold text-gray-900 text-lg">Manage Booking</h3>
-              <button onClick={() => setSelectedBooking(null)} className="text-gray-400 hover:text-gray-600">✕</button>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
+            <div className="p-6 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
+              <div>
+                <h3 className="font-bold text-gray-900 text-lg">View / Manage Booking</h3>
+                {selectedBooking.booking_id && (
+                  <p className="text-xs font-mono text-primary mt-0.5">{selectedBooking.booking_id}</p>
+                )}
+              </div>
+              <button onClick={() => setSelectedBooking(null)} className="text-gray-400 hover:text-gray-600"><XCircle size={20} /></button>
             </div>
-            <div className="p-6 space-y-4">
-              {selectedBooking.booking_id && (
-                <div className="bg-primary/10 text-primary font-mono font-bold text-center py-2 rounded-xl text-sm">
-                  {selectedBooking.booking_id}
-                </div>
-              )}
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                {[
-                  { label: "Name", value: selectedBooking.name },
-                  { label: "Phone", value: selectedBooking.phone },
-                  { label: "Email", value: selectedBooking.email || "—" },
-                  { label: "Check-in Date", value: formatDate(selectedBooking.check_in_date) },
-                  { label: "Check-in Time", value: selectedBooking.check_in_time?.slice(0, 5) || "Flexible" },
-                  { label: "Room", value: selectedBooking.selected_room_no ? `${selectedBooking.selected_room_no} (${selectedBooking.preferred_building})` : selectedBooking.preferred_building || "Any" },
-                ].map((item) => (
-                  <div key={item.label}>
-                    <span className="text-xs text-gray-400 uppercase tracking-wide">{item.label}</span>
-                    <p className="font-medium text-gray-800 mt-0.5">{item.value}</p>
+            <div className="p-6 space-y-5 overflow-y-auto flex-1">
+              {/* Contact Info */}
+              <div>
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Contact</p>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <span className="text-xs text-gray-400">Name</span>
+                    <p className="font-semibold text-gray-900 mt-0.5">{selectedBooking.name}</p>
                   </div>
-                ))}
+                  <div>
+                    <span className="text-xs text-gray-400">Phone</span>
+                    <a href={`tel:${selectedBooking.phone}`} className="flex items-center gap-1 font-medium text-primary hover:underline mt-0.5">
+                      <Phone size={12} />{selectedBooking.phone}
+                    </a>
+                  </div>
+                  {selectedBooking.email && (
+                    <div className="col-span-2">
+                      <span className="text-xs text-gray-400">Email</span>
+                      <p className="font-medium text-gray-800 mt-0.5">{selectedBooking.email}</p>
+                    </div>
+                  )}
+                </div>
               </div>
 
+              {/* Stay Details */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <MessageSquare size={14} className="inline mr-1" />
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Stay Details</p>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <span className="text-xs text-gray-400">Check-in Date</span>
+                    <p className="font-medium text-gray-800 mt-0.5">{formatDate(selectedBooking.check_in_date)}</p>
+                  </div>
+                  <div>
+                    <span className="text-xs text-gray-400">Check-in Time</span>
+                    <p className="font-medium text-gray-800 mt-0.5">{selectedBooking.check_in_time?.slice(0, 5) || "Flexible"}</p>
+                  </div>
+                  <div>
+                    <span className="text-xs text-gray-400">Booking Type</span>
+                    <p className="font-medium text-gray-800 mt-0.5 capitalize">{selectedBooking.booking_type || "—"}</p>
+                  </div>
+                  <div>
+                    <span className="text-xs text-gray-400">Room Preference</span>
+                    <p className="font-medium text-gray-800 mt-0.5 capitalize">
+                      {selectedBooking.preferred_room_type === "ac" ? "AC" : selectedBooking.preferred_room_type === "non-ac" ? "Non-AC" : "No preference"}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-xs text-gray-400">Building</span>
+                    <p className="font-medium text-gray-800 mt-0.5 capitalize">{selectedBooking.preferred_building || "Any"}</p>
+                  </div>
+                  <div>
+                    <span className="text-xs text-gray-400">Room</span>
+                    <p className="font-medium text-gray-800 mt-0.5">{selectedBooking.selected_room_no || "Not assigned"}</p>
+                  </div>
+                  {(selectedBooking.adults > 0 || selectedBooking.children > 0) && (
+                    <div>
+                      <span className="text-xs text-gray-400">Guests</span>
+                      <p className="font-medium text-gray-800 mt-0.5">
+                        {selectedBooking.adults || 0} adult{selectedBooking.adults !== 1 ? "s" : ""}
+                        {selectedBooking.children > 0 ? `, ${selectedBooking.children} child${selectedBooking.children !== 1 ? "ren" : ""}` : ""}
+                      </p>
+                    </div>
+                  )}
+                  <div>
+                    <span className="text-xs text-gray-400">Submitted</span>
+                    <p className="font-medium text-gray-500 mt-0.5 text-xs">{formatDate(selectedBooking.created_at)}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Applicant Notes */}
+              {selectedBooking.notes && (
+                <div>
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Notes from Applicant</p>
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-900">
+                    {selectedBooking.notes}
+                  </div>
+                </div>
+              )}
+
+              {/* Admin Notes */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                  <MessageSquare size={12} className="inline mr-1" />
                   Admin Notes
                 </label>
                 <textarea
@@ -329,28 +397,39 @@ export default function BookingsPage() {
                 />
               </div>
 
-              <div className="flex gap-2 pt-2">
-                <button
-                  onClick={() => updateStatus(selectedBooking.id, "confirmed", adminNotes)}
-                  disabled={saving}
-                  className="flex-1 flex items-center justify-center gap-2 py-3 bg-green-500 text-white font-semibold rounded-xl hover:bg-green-600 transition-all text-sm disabled:opacity-60"
-                >
-                  <CheckCircle size={16} /> Confirm
-                </button>
-                <button
-                  onClick={() => updateStatus(selectedBooking.id, "cancelled", adminNotes)}
-                  disabled={saving}
-                  className="flex-1 flex items-center justify-center gap-2 py-3 bg-red-500 text-white font-semibold rounded-xl hover:bg-red-600 transition-all text-sm disabled:opacity-60"
-                >
-                  <XCircle size={16} /> Cancel
-                </button>
-                <a
-                  href={`tel:${selectedBooking.phone}`}
-                  className="flex items-center justify-center gap-2 px-4 py-3 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-all text-sm"
-                >
-                  <Phone size={16} />
-                </a>
+              {/* Status badge */}
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-400">Current Status:</span>
+                <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border capitalize ${statusColors[selectedBooking.status] || "bg-gray-100 text-gray-600"}`}>
+                  {selectedBooking.status === "pending" && <Clock size={11} />}
+                  {selectedBooking.status === "confirmed" && <CheckCircle size={11} />}
+                  {selectedBooking.status === "cancelled" && <XCircle size={11} />}
+                  {selectedBooking.status}
+                </span>
               </div>
+            </div>
+
+            <div className="p-6 border-t border-gray-100 flex gap-2 flex-shrink-0">
+              <button
+                onClick={() => updateStatus(selectedBooking.id, "confirmed", adminNotes)}
+                disabled={saving}
+                className="flex-1 flex items-center justify-center gap-2 py-3 bg-green-500 text-white font-semibold rounded-xl hover:bg-green-600 transition-all text-sm disabled:opacity-60"
+              >
+                <CheckCircle size={16} /> Confirm
+              </button>
+              <button
+                onClick={() => updateStatus(selectedBooking.id, "cancelled", adminNotes)}
+                disabled={saving}
+                className="flex-1 flex items-center justify-center gap-2 py-3 bg-red-500 text-white font-semibold rounded-xl hover:bg-red-600 transition-all text-sm disabled:opacity-60"
+              >
+                <XCircle size={16} /> Cancel
+              </button>
+              <a
+                href={`tel:${selectedBooking.phone}`}
+                className="flex items-center justify-center gap-2 px-4 py-3 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-all text-sm"
+              >
+                <Phone size={16} />
+              </a>
             </div>
           </div>
         </div>

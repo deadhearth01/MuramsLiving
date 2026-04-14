@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Resend } from "resend";
-
-const resend = new Resend(process.env.NEXT_RESEND_API_KEY);
+import nodemailer from "nodemailer";
 
 export interface BookingEmailPayload {
   name: string;
@@ -16,7 +14,8 @@ export interface BookingEmailPayload {
 }
 
 function buildEmailHtml(data: BookingEmailPayload): string {
-  const buildingLabel = data.building === "gold" ? "Gold Building" : "Silver Building";
+  const buildingLabel =
+    data.building === "gold" ? "Gold Building" : "Silver Building";
   const buildingColor = data.building === "gold" ? "#d97706" : "#64748b";
   const checkIn = data.checkInDate
     ? new Date(data.checkInDate).toLocaleDateString("en-IN", {
@@ -140,7 +139,7 @@ function buildEmailHtml(data: BookingEmailPayload): string {
                   </td>
                   <td style="text-align:center;padding:0 8px;">
                     <div style="font-size:18px;margin-bottom:4px;">📶</div>
-                    <div style="font-size:11px;color:#64748b;font-weight:600;">High-Speed WiFi</div>
+                    <div style="font-size:11px;color:#64748b;font-weight:600;">Free Wifi</div>
                   </td>
                 </tr>
               </table>
@@ -228,25 +227,58 @@ export async function POST(req: NextRequest) {
     const body: BookingEmailPayload = await req.json();
 
     if (!body.email) {
-      return NextResponse.json({ skipped: true, reason: "No email provided" }, { status: 200 });
+      return NextResponse.json(
+        { skipped: true, reason: "No email provided" },
+        { status: 200 },
+      );
     }
 
-    const { data, error } = await resend.emails.send({
-      from: "Murams Living <booking@muramsliving.com>",
-      to: [body.email],
-      replyTo: "muramslivng@gmail.com",
-      subject: `Booking Request Received — Room ${body.roomGroup}, ${body.building === "gold" ? "Gold" : "Silver"} Building`,
-      html: buildEmailHtml(body),
+    const host = process.env.SMTP_HOST;
+    const port = parseInt(process.env.SMTP_PORT || "587");
+    const user = process.env.SMTP_USER;
+    const pass = process.env.SMTP_PASS;
+    const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL;
+
+    if (!host || !user || !pass) {
+      console.error(
+        "SMTP not configured — missing SMTP_HOST, SMTP_USER, or SMTP_PASS",
+      );
+      return NextResponse.json(
+        { skipped: true, reason: "SMTP not configured" },
+        { status: 200 },
+      );
+    }
+
+    const transporter = nodemailer.createTransport({
+      host,
+      port,
+      secure: port === 465,
+      auth: { user, pass },
     });
 
-    if (error) {
-      console.error("Resend error:", error);
-      return NextResponse.json({ error }, { status: 500 });
+    const subject = `Booking Request Received — Room ${body.roomGroup}, ${body.building === "gold" ? "Gold" : "Silver"} Building`;
+    const html = buildEmailHtml(body);
+
+    // Build recipient list: always include the booker; also CC the owner if configured
+    const recipients: string[] = [body.email];
+    if (adminEmail && adminEmail !== body.email) {
+      recipients.push(adminEmail);
     }
 
-    return NextResponse.json({ success: true, id: data?.id });
+    await transporter.sendMail({
+      from: `"Murams Living" <${user}>`,
+      to: recipients.join(", "),
+      replyTo: user,
+      subject,
+      html,
+    });
+
+    return NextResponse.json({ success: true });
   } catch (err) {
-    console.error("Email route error:", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    console.error("Booking confirmation email error:", err);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }

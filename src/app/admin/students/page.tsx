@@ -32,29 +32,46 @@ interface Student {
   archived_at: string | null;
 }
 
+function isValidIndianPhone(phone: string): boolean {
+  return /^(\+91|91|0)?[6-9]\d{9}$/.test(phone.replace(/\s+/g, "").replace(/-/g, ""));
+}
+function isValidEmailAddr(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
 // Extracted outside component to prevent re-creation on every render (fixes auto-focus bug)
 function StudentInputField({
-  label, value, onChange, type = "text", placeholder = "",
+  label, value, onChange, type = "text", placeholder = "", validate,
 }: {
   label: string;
   value: string | number;
   onChange: (val: string | number) => void;
   type?: string;
   placeholder?: string;
+  validate?: (val: string) => string | null;
 }) {
+  const [error, setError] = useState<string | null>(null);
+
   return (
     <div>
       <label className="block text-xs font-medium text-gray-600 mb-1">{label}</label>
       <input
         type={type}
         value={value || ""}
-        onChange={(e) => onChange(type === "number" ? Number(e.target.value) : e.target.value)}
-        className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+        onChange={(e) => { onChange(type === "number" ? Number(e.target.value) : e.target.value); if (error) setError(null); }}
+        onBlur={(e) => { if (validate) setError(validate(e.target.value)); }}
+        className={`w-full border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 transition-colors ${
+          error
+            ? "border-red-400 focus:ring-red-200 focus:border-red-400"
+            : "border-gray-200 focus:ring-primary/20 focus:border-primary"
+        }`}
         placeholder={placeholder}
       />
+      {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
     </div>
   );
 }
+
 
 const emptyStudent: Partial<Student> = {
   building: "gold",
@@ -89,6 +106,7 @@ export default function StudentsPage() {
   const [buildingFilter, setBuildingFilter] = useState("all");
   const [modal, setModal] = useState<"add" | "edit" | null>(null);
   const [form, setForm] = useState<Partial<Student>>(emptyStudent);
+  const [roomOptions, setRoomOptions] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<"gold" | "silver">("gold");
   const [actionMenu, setActionMenu] = useState<string | null>(null);
@@ -102,6 +120,25 @@ export default function StudentsPage() {
   }, []);
 
   useEffect(() => { fetchStudents(); }, [fetchStudents]);
+
+  // Fetch room numbers for the selected building whenever modal opens or building changes
+  useEffect(() => {
+    if (!modal) return;
+    (async () => {
+      const supabase = createClient();
+      const building = form.building || "gold";
+      const { data } = await supabase
+        .from("rooms")
+        .select("room_group, room_no")
+        .eq("building", building)
+        .order("room_no");
+      if (data) {
+        // Unique room_group values (each group = one room)
+        const groups = Array.from(new Set(data.map((r: any) => r.room_group || r.room_no).filter(Boolean)));
+        setRoomOptions(groups.sort());
+      }
+    })();
+  }, [modal, form.building]);
 
   useEffect(() => {
     let result = students.filter((s) => s.building === activeTab);
@@ -120,7 +157,32 @@ export default function StudentsPage() {
     setFiltered(result);
   }, [search, buildingFilter, students, activeTab]);
 
+  const isValidPhone = (phone: string) =>
+    /^(\+91|91|0)?[6-9]\d{9}$/.test(phone.replace(/\s+/g, "").replace(/-/g, ""));
+
+  const isValidEmail = (email: string) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
   const handleSave = async () => {
+    // Validate phone — mandatory
+    if (!form.phone || !form.phone.trim()) {
+      alert("Phone number is required.");
+      return;
+    }
+    if (!isValidPhone(form.phone)) {
+      alert("Please enter a valid 10-digit Indian mobile number (e.g. 9876543210 or +91 9876543210).");
+      return;
+    }
+    // Validate email — optional but must be valid if provided
+    if (form.email && form.email.trim() && !isValidEmail(form.email)) {
+      alert("Please enter a valid email address (e.g. name@example.com).");
+      return;
+    }
+    // Validate parent contact if provided
+    if (form.parent_contact && form.parent_contact.trim() && !isValidPhone(form.parent_contact)) {
+      alert("Please enter a valid parent/guardian contact number.");
+      return;
+    }
     setSaving(true);
     const supabase = createClient();
     if (modal === "add") {
@@ -159,14 +221,31 @@ export default function StudentsPage() {
   const goldCount = students.filter((s) => s.building === "gold" && s.status === "active").length;
   const silverCount = students.filter((s) => s.building === "silver" && s.status === "active").length;
 
+  const phoneValidator = (v: string) => {
+    if (!v || !v.trim()) return "Phone number is required.";
+    if (!isValidIndianPhone(v)) return "Enter a valid 10-digit Indian mobile number.";
+    return null;
+  };
+  const emailValidator = (v: string) => {
+    if (!v || !v.trim()) return null; // optional
+    if (!isValidEmailAddr(v)) return "Enter a valid email (e.g. name@example.com).";
+    return null;
+  };
+  const parentPhoneValidator = (v: string) => {
+    if (!v || !v.trim()) return null; // optional
+    if (!isValidIndianPhone(v)) return "Enter a valid 10-digit Indian mobile number.";
+    return null;
+  };
+
   // Helper to create bound input fields using the extracted StudentInputField
-  const F = (label: string, field: keyof Student, type = "text", placeholder = "") => (
+  const F = (label: string, field: keyof Student, type = "text", placeholder = "", validate?: (v: string) => string | null) => (
     <StudentInputField
       label={label}
       value={(form[field] as string | number) ?? ""}
       onChange={(val) => setForm((prev) => ({ ...prev, [field]: val }))}
       type={type}
       placeholder={placeholder}
+      validate={validate}
     />
   );
 
@@ -361,16 +440,31 @@ export default function StudentsPage() {
                     <option value="silver">Silver</option>
                   </select>
                 </div>
-                {F("Room Number", "room_no", "text", "e.g., 11-1")}
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Room Number *</label>
+                  <select
+                    value={form.room_no || ""}
+                    onChange={(e) => setForm({ ...form, room_no: e.target.value })}
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none"
+                  >
+                    <option value="">— Select Room —</option>
+                    {roomOptions.map((r) => (
+                      <option key={r} value={r}>{r}</option>
+                    ))}
+                    {form.room_no && !roomOptions.includes(form.room_no) && (
+                      <option value={form.room_no}>{form.room_no} (current)</option>
+                    )}
+                  </select>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 {F("Full Name", "name", "text", "Student name")}
-                {F("Phone Number", "phone", "text", "Mobile number")}
+                {F("Phone Number *", "phone", "text", "Mobile number", phoneValidator)}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                {F("Email", "email", "text", "email@example.com")}
+                {F("Email", "email", "text", "email@example.com", emailValidator)}
                 {F("Date of Birth", "dob", "date")}
               </div>
 
@@ -409,7 +503,7 @@ export default function StudentsPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 {F("Parent/Guardian Name", "parent_name")}
-                {F("Parent Contact", "parent_contact")}
+                {F("Parent Contact", "parent_contact", "text", "Mobile number", parentPhoneValidator)}
               </div>
 
               <div>

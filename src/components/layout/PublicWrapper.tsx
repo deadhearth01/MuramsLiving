@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import Header from "./Header";
 import Footer from "./Footer";
+import StickySidebar from "./StickySidebar";
 
 export default function PublicWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -14,6 +15,7 @@ export default function PublicWrapper({ children }: { children: React.ReactNode 
     <>
       <Header />
       {children}
+      <StickySidebar />
       <Footer />
       {/* Mobile floating CTA bar */}
       <div className="floating-btn-bar md:hidden">

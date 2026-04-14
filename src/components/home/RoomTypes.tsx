@@ -3,88 +3,83 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
-  Users, Utensils, Shield, Wifi, Wind, Check, ArrowRight, Phone,
-  BedDouble, BedSingle, Sparkles,
+  Utensils,
+  Shield,
+  Wifi,
+  Wind,
+  Check,
+  ArrowRight,
+  Sparkles,
+  BedDouble,
+  BedSingle,
+  Users,
 } from "lucide-react";
 import Link from "next/link";
 import { AnimatedSection } from "@/components/ui/AnimatedSection";
 import { createClient } from "@/utils/supabase/client";
 
 const defaultPrices: Record<string, string> = {
-  "2-Sharing Room": "₹8,000",
-  "3-Sharing Room": "₹6,500",
-  "4-Sharing Room": "₹5,500",
+  "2-Sharing Room": "₹10,000",
+  "3-Sharing Room": "₹6,000",
+  "4-Sharing Room": "₹8,000",
 };
 
-const roomTypesDef = [
+// What makes each plan unique — only the bed count differs
+const plans = [
   {
     id: "double",
     Icon: BedDouble,
     title: "Double Sharing",
-    beds: 2,
     priceKey: "2-Sharing Room",
-    description: "Spacious rooms for two — ideal for those who value extra space and a quieter environment.",
-    features: [
-      "2 comfortable beds",
-      "Personal wardrobe",
-      "Study table & chair",
-      "Attached / common bathroom",
-      "Air conditioning",
-      "High-speed WiFi",
-    ],
-    priceNote: "/month onwards",
+    beds: 2,
+    tagline: "Maximum space & privacy",
+    highlight: "2 beds per room",
     popular: false,
-    accent: "border-gray-100",
-    priceColor: "text-navy",
+    accent: "border-gray-200",
+    badgeClass: "",
   },
   {
     id: "triple",
     Icon: Users,
     title: "Triple Sharing",
-    beds: 3,
     priceKey: "3-Sharing Room",
-    description: "Our most-requested option. The right balance of affordability, company, and personal space.",
-    features: [
-      "3 single beds",
-      "Individual storage",
-      "Study space",
-      "Common bathroom",
-      "AC available",
-      "Free WiFi",
-    ],
-    priceNote: "/month onwards",
+    beds: 3,
+    tagline: "Balance of company & space",
+    highlight: "3 beds per room",
     popular: true,
-    accent: "border-primary/30 ring-1 ring-primary/10",
-    priceColor: "text-primary",
+    accent: "border-primary ring-1 ring-primary/20",
+    badgeClass: "bg-primary text-white",
   },
   {
     id: "quad",
     Icon: BedSingle,
     title: "Four Sharing",
-    beds: 4,
     priceKey: "4-Sharing Room",
-    description: "Best value for budget-conscious residents. All essential amenities without compromise.",
-    features: [
-      "4 single beds",
-      "Shared storage",
-      "Fan / AC options",
-      "Common bathroom",
-      "Free WiFi",
-      "All meals included",
-    ],
-    priceNote: "/month onwards",
+    beds: 4,
+    tagline: "Best value for budget residents",
+    highlight: "4 beds per room",
     popular: false,
-    accent: "border-gray-100",
-    priceColor: "text-navy",
+    accent: "border-gray-200",
+    badgeClass: "",
   },
 ];
 
-const included = [
-  { icon: Utensils, label: "3 Meals / Day",   sub: "Home-cooked"    },
-  { icon: Shield,   label: "24/7 Security",   sub: "CCTV + Guards"  },
-  { icon: Sparkles, label: "Housekeeping",    sub: "Daily cleaning" },
-  { icon: Wifi,     label: "High-Speed WiFi", sub: "Unlimited"      },
-  { icon: Wind,     label: "Hot Water",       sub: "24/7 available" },
+// Everything included in ALL plans — shown once
+const sharedAmenities = [
+  { icon: Utensils, label: "3 Meals / Day", sub: "Breakfast, lunch & dinner" },
+  { icon: Shield, label: "24/7 Security", sub: "CCTV + guards" },
+  { icon: Sparkles, label: "Housekeeping", sub: "Daily room cleaning" },
+  { icon: Wifi, label: "Free Wifi", sub: "Unlimited internet" },
+  { icon: Wind, label: "Hot Water 24/7", sub: "Solar-powered system" },
+];
+
+const roomExtras = [
+  "Personal wardrobe / storage",
+  "Study table & chair",
+  "Attached or common bathroom",
+  "AC (optional upgrade)",
+  "Marble flooring",
+  "Elevator access",
 ];
 
 export default function RoomTypes() {
@@ -107,14 +102,11 @@ export default function RoomTypes() {
           });
           setPrices((prev) => ({ ...prev, ...map }));
         }
-      } catch { /* fallback to defaults */ }
+      } catch {
+        /* fallback to defaults */
+      }
     })();
   }, []);
-
-  const roomTypes = roomTypesDef.map((r) => ({
-    ...r,
-    price: prices[r.priceKey] || defaultPrices[r.priceKey] || "₹0",
-  }));
 
   return (
     <section className="py-24 lg:py-32 bg-surface-secondary relative overflow-hidden">
@@ -128,107 +120,154 @@ export default function RoomTypes() {
             Find the right room for you.
           </h2>
           <p className="text-text-secondary text-lg">
-            Flexible room types for every budget. Every option includes our full suite
-            of amenities — no hidden extras.
+            Same premium amenities in every room — the only difference is how
+            many people you share with. Pick the configuration that suits your
+            lifestyle and budget.
           </p>
         </AnimatedSection>
 
-        {/* Room Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 mb-12">
-          {roomTypes.map((room, i) => (
-            <motion.div
-              key={room.id}
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1, duration: 0.5 }}
-              className={`relative bg-white rounded-2xl border-2 ${room.accent} p-7 flex flex-col shadow-soft hover:shadow-soft-md transition-all duration-300`}
-            >
-              {/* Popular badge */}
-              {room.popular && (
-                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-primary text-white text-xs font-bold px-4 py-1 rounded-full shadow-sm whitespace-nowrap">
-                  Most Popular
-                </div>
-              )}
-
-              {/* Icon + title */}
-              <div className="flex items-start gap-4 mb-5">
-                <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${room.popular ? "bg-primary/10" : "bg-navy/5"}`}>
-                  <room.Icon size={20} className={room.popular ? "text-primary" : "text-navy"} />
-                </div>
-                <div>
-                  <h3 className="font-heading font-bold text-lg text-navy leading-tight">{room.title}</h3>
-                  <p className="text-text-secondary text-xs mt-0.5">{room.beds}-bed room</p>
-                </div>
-              </div>
-
-              <p className="text-text-secondary text-sm leading-relaxed mb-6">{room.description}</p>
-
-              {/* Features */}
-              <ul className="space-y-2 mb-7 flex-1">
-                {room.features.map((f) => (
-                  <li key={f} className="flex items-center gap-2.5 text-sm text-navy">
-                    <Check size={13} className="text-primary flex-shrink-0" />
-                    {f}
-                  </li>
-                ))}
-              </ul>
-
-              {/* Price + CTA */}
-              <div className="border-t border-gray-100 pt-5">
-                <div className="flex items-end justify-between mb-4">
-                  <div>
-                    <span className={`font-heading font-bold text-2xl ${room.priceColor}`}>{room.price}</span>
-                    <span className="text-text-secondary text-xs ml-1">{room.priceNote}</span>
-                  </div>
-                </div>
-                <a
-                  href="tel:+917816055655"
-                  className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold transition-all duration-300 ${
-                    room.popular
-                      ? "bg-primary text-white hover:bg-primary-dark shadow-sm hover:shadow-glow"
-                      : "bg-navy/5 text-navy hover:bg-navy hover:text-white"
-                  }`}
+        {/* Layout: cards left, shared inclusions right */}
+        <div className="grid lg:grid-cols-5 gap-8 lg:gap-10 items-start">
+          {/* ── Pricing Cards ─────────────────────────────────── */}
+          <div className="lg:col-span-3 space-y-4">
+            {plans.map((plan, i) => {
+              const price =
+                prices[plan.priceKey] || defaultPrices[plan.priceKey];
+              return (
+                <motion.div
+                  key={plan.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1, duration: 0.5 }}
+                  className={`relative bg-white rounded-2xl border-2 ${plan.accent} p-6 flex items-center gap-6 shadow-sm hover:shadow-md transition-all duration-300 group`}
                 >
-                  <Phone size={14} />
-                  Check Availability
-                </a>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+                  {plan.popular && (
+                    <div className="absolute -top-3 left-6 bg-primary text-white text-[11px] font-bold px-3 py-1 rounded-full shadow-sm">
+                      Most Popular
+                    </div>
+                  )}
 
-        {/* Included services */}
-        <AnimatedSection delay={0.3}>
-          <div className="bg-white rounded-2xl border border-gray-100 p-7 lg:p-9 shadow-soft">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-7">
-              <div>
-                <h3 className="font-heading font-bold text-lg text-navy">Included with every room</h3>
-                <p className="text-text-muted text-sm mt-0.5">No surprise charges.</p>
+                  {/* Icon */}
+                  <div
+                    className={`w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 ${plan.popular ? "bg-primary/10" : "bg-navy/5"} group-hover:scale-105 transition-transform`}
+                  >
+                    <plan.Icon
+                      size={24}
+                      className={plan.popular ? "text-primary" : "text-navy"}
+                    />
+                  </div>
+
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <h3 className="font-heading font-bold text-lg text-navy leading-tight">
+                          {plan.title}
+                        </h3>
+                        <p className="text-text-secondary text-sm mt-0.5">
+                          {plan.tagline}
+                        </p>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <div
+                          className={`font-heading font-bold text-2xl ${plan.popular ? "text-primary" : "text-navy"}`}
+                        >
+                          {price}
+                        </div>
+                        <p className="text-text-muted text-xs">
+                          /month onwards
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* What's unique about this plan */}
+                    <div className="mt-3 flex items-center gap-2">
+                      <span className="flex items-center gap-1.5 bg-surface-secondary text-navy text-xs font-semibold px-3 py-1.5 rounded-full">
+                        <plan.Icon size={12} />
+                        {plan.highlight}
+                      </span>
+                      <span className="text-text-muted text-xs">
+                        · Everything else stays the same
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* CTA */}
+                  <Link
+                    href="/book"
+                    className={`flex-shrink-0 flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold transition-all duration-300 ${
+                      plan.popular
+                        ? "bg-primary text-white hover:bg-primary-dark shadow-sm"
+                        : "bg-navy/5 text-navy hover:bg-navy hover:text-white"
+                    }`}
+                  >
+                    <span className="hidden sm:inline">Check Availability</span>
+                    <ArrowRight size={16} />
+                  </Link>
+                </motion.div>
+              );
+            })}
+          </div>
+
+          {/* ── What's Included (shared across all plans) ─────── */}
+          <AnimatedSection delay={0.2} className="lg:col-span-2">
+            <div className="bg-white rounded-2xl border border-gray-100 p-7 shadow-sm sticky top-8">
+              <h3 className="font-heading font-bold text-navy text-lg mb-1">
+                Included with every room
+              </h3>
+              <p className="text-text-muted text-sm mb-6">
+                No extra charges. No surprises. Same for all sharing types.
+              </p>
+
+              {/* Core amenities */}
+              <div className="space-y-4 mb-6">
+                {sharedAmenities.map(({ icon: Icon, label, sub }) => (
+                  <div key={label} className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-primary/8 flex items-center justify-center flex-shrink-0">
+                      <Icon size={16} className="text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-navy text-sm leading-tight">
+                        {label}
+                      </p>
+                      <p className="text-text-muted text-xs">{sub}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
+
+              {/* Room extras */}
+              <div className="border-t border-gray-100 pt-5">
+                <p className="text-xs font-bold text-text-secondary uppercase tracking-wider mb-3">
+                  Also in every room
+                </p>
+                <div className="space-y-2">
+                  {roomExtras.map((item) => (
+                    <div
+                      key={item}
+                      className="flex items-center gap-2 text-sm text-navy"
+                    >
+                      <Check size={13} className="text-primary flex-shrink-0" />
+                      {item}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               <Link
                 href="/book"
-                className="group inline-flex items-center gap-2 text-primary text-sm font-semibold hover:underline shrink-0"
+                className="mt-6 w-full flex items-center justify-center gap-2 py-3.5 bg-navy text-white rounded-xl text-sm font-semibold hover:bg-navy-dark transition-all group"
               >
-                Book a room
-                <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
+                Book a Room
+                <ArrowRight
+                  size={15}
+                  className="group-hover:translate-x-0.5 transition-transform"
+                />
               </Link>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5">
-              {included.map(({ icon: Icon, label, sub }) => (
-                <div key={label} className="flex items-center gap-3 sm:flex-col sm:items-center sm:text-center">
-                  <div className="w-10 h-10 rounded-xl bg-primary/8 flex items-center justify-center flex-shrink-0 sm:mb-2">
-                    <Icon size={18} className="text-primary" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-navy text-sm leading-tight">{label}</p>
-                    <p className="text-text-muted text-xs mt-0.5">{sub}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </AnimatedSection>
+          </AnimatedSection>
+        </div>
       </div>
     </section>
   );

@@ -14,6 +14,9 @@ import {
 const quickLinks = [
   { href: "/", label: "Home" },
   { href: "/about", label: "About Us" },
+  { href: "/students", label: "Students" },
+  { href: "/tourists", label: "Tourists" },
+  { href: "/silver", label: "Silver Building" },
   { href: "/amenities", label: "Amenities" },
   { href: "/gallery", label: "Gallery" },
   { href: "/contact", label: "Contact" },
@@ -21,7 +24,7 @@ const quickLinks = [
 
 const amenitiesLinks = [
   "AC Rooms",
-  "High-Speed WiFi",
+  "Free Wifi",
   "Home-Cooked Meals",
   "24/7 Hot Water",
   "24/7 Security",
@@ -31,10 +34,30 @@ const amenitiesLinks = [
 ];
 
 const socialLinks = [
-  { href: "https://facebook.com", icon: FaFacebookF, label: "Facebook", color: "#1877F2" },
-  { href: "https://instagram.com", icon: FaInstagram, label: "Instagram", color: "#E4405F" },
-  { href: "https://wa.me/917816055655", icon: FaWhatsapp, label: "WhatsApp", color: "#25D366" },
-  { href: "https://youtube.com", icon: FaYoutube, label: "YouTube", color: "#FF0000" },
+  {
+    href: "https://facebook.com",
+    icon: FaFacebookF,
+    label: "Facebook",
+    color: "#1877F2",
+  },
+  {
+    href: "https://instagram.com",
+    icon: FaInstagram,
+    label: "Instagram",
+    color: "#E4405F",
+  },
+  {
+    href: "https://wa.me/917816055655",
+    icon: FaWhatsapp,
+    label: "WhatsApp",
+    color: "#25D366",
+  },
+  {
+    href: "https://youtube.com",
+    icon: FaYoutube,
+    label: "YouTube",
+    color: "#FF0000",
+  },
 ];
 
 export default function Footer() {
@@ -58,9 +81,10 @@ export default function Footer() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6 }}
-                className="font-heading text-3xl lg:text-4xl font-bold mb-3"
+                className="font-heading text-3xl lg:text-4xl font-bold text-white mb-3"
               >
-                Ready to make <span className="text-primary">Murams</span> your home?
+                Ready to make <span className="text-primary">Murams</span> your
+                home?
               </motion.h2>
               <motion.p
                 initial={{ opacity: 0, y: 20 }}
@@ -85,7 +109,10 @@ export default function Footer() {
               >
                 <Phone size={18} />
                 <span>Call Us Now</span>
-                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                <ArrowRight
+                  size={18}
+                  className="group-hover:translate-x-1 transition-transform"
+                />
               </a>
               <a
                 href="https://wa.me/917816055655"
@@ -116,10 +143,11 @@ export default function Footer() {
               />
             </Link>
             <p className="text-white/60 text-sm leading-relaxed mb-6 max-w-sm">
-              Experience premium PG & Hostel living in Rushikonda, Visakhapatnam. 
-              Where comfort meets community, and every day feels like home.
+              Experience premium PG & Hostel living in Rushikonda,
+              Visakhapatnam. Where comfort meets community, and every day feels
+              like home.
             </p>
-            
+
             {/* Social Links */}
             <div className="flex items-center gap-3">
               {socialLinks.map((social) => (
@@ -132,10 +160,12 @@ export default function Footer() {
                   whileHover={{ scale: 1.1, y: -2 }}
                   whileTap={{ scale: 0.95 }}
                   className="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all duration-300 group"
-                  style={{ '--hover-color': social.color } as React.CSSProperties}
+                  style={
+                    { "--hover-color": social.color } as React.CSSProperties
+                  }
                 >
-                  <social.icon 
-                    size={16} 
+                  <social.icon
+                    size={16}
                     className="text-white/70 group-hover:text-white transition-colors"
                   />
                 </motion.a>
@@ -193,7 +223,9 @@ export default function Footer() {
                     <Phone size={16} className="text-primary" />
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-white/90">Phone</div>
+                    <div className="text-sm font-medium text-white/90">
+                      Phone
+                    </div>
                     <div className="text-sm">+91 7816055655</div>
                     <div className="text-sm">+91 7842222284</div>
                   </div>
@@ -208,7 +240,9 @@ export default function Footer() {
                     <Mail size={16} className="text-primary" />
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-white/90">Email</div>
+                    <div className="text-sm font-medium text-white/90">
+                      Email
+                    </div>
                     <div className="text-sm">contact@muramsliving.com</div>
                   </div>
                 </a>
@@ -219,9 +253,12 @@ export default function Footer() {
                     <MapPin size={16} className="text-primary" />
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-white/90">Address</div>
+                    <div className="text-sm font-medium text-white/90">
+                      Address
+                    </div>
                     <div className="text-sm">
-                      Murams Living, Rushikonda,<br />
+                      Murams Living, Rushikonda,
+                      <br />
                       Visakhapatnam, AP - 530045
                     </div>
                   </div>
@@ -249,14 +286,14 @@ export default function Footer() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-white/40">
             <p>© {currentYear} Murams Living. All rights reserved.</p>
             <div className="flex items-center gap-6">
-              <Link 
-                href="/privacy" 
+              <Link
+                href="/privacy"
                 className="hover:text-white transition-colors"
               >
                 Privacy Policy
               </Link>
-              <Link 
-                href="/terms" 
+              <Link
+                href="/terms"
                 className="hover:text-white transition-colors"
               >
                 Terms of Service

@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Phone, User, Mail, Calendar, Clock, CheckCircle2,
   ChevronRight, ChevronLeft, Building2, Search, DoorOpen,
-  MapPin, Users, Minus, Plus,
+  MapPin, Users, Minus, Plus, Wind,
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 
@@ -40,6 +40,18 @@ interface FormData {
   checkInTime: string;
   preferredBuilding: "gold" | "silver" | "any";
   preferredSharing: Sharing;
+  preferredRoomType: "ac" | "non-ac" | "any";
+}
+
+// ── validation helpers ─────────────────────────────────────────────────────────
+function isValidIndianPhone(phone: string): boolean {
+  const cleaned = phone.replace(/\s+/g, "").replace(/-/g, "");
+  // Accept: 10 digits, +91XXXXXXXXXX, 0XXXXXXXXXX
+  return /^(\+91|91|0)?[6-9]\d{9}$/.test(cleaned);
+}
+
+function isValidEmail(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
 const STUDENT_STEPS = [
@@ -114,7 +126,10 @@ export default function BookingPage() {
     name: "", phone: "", email: "",
     checkInDate: "", checkInTime: "",
     preferredBuilding: "any", preferredSharing: "any",
+    preferredRoomType: "any",
   });
+  const [step1Error, setStep1Error] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<{ phone?: string; email?: string }>({});
   const [adults, setAdults]     = useState(1);
   const [children, setChildren] = useState(0);
   const [availableGroups, setAvailableGroups] = useState<RoomGroup[]>([]);
@@ -220,11 +235,19 @@ export default function BookingPage() {
         booking_type: bookingMode,
         adults: isPublic ? adults : 1,
         children: isPublic ? children : 0,
-        notes: isPublic
-          ? `${adults} adult${adults !== 1 ? "s" : ""}${children > 0 ? `, ${children} child${children !== 1 ? "ren" : ""}` : ""}`
-          : formData.preferredSharing !== "any"
-          ? `Prefers ${formData.preferredSharing}-sharing room`
-          : null,
+        notes: (() => {
+          const parts: string[] = [];
+          if (isPublic) {
+            parts.push(`${adults} adult${adults !== 1 ? "s" : ""}${children > 0 ? `, ${children} child${children !== 1 ? "ren" : ""}` : ""}`);
+          } else if (formData.preferredSharing !== "any") {
+            parts.push(`Prefers ${formData.preferredSharing}-sharing room`);
+          }
+          if (formData.preferredRoomType !== "any") {
+            parts.push(`Room type: ${formData.preferredRoomType === "ac" ? "AC" : "Non-AC"}`);
+          }
+          return parts.length ? parts.join(". ") : null;
+        })(),
+        preferred_room_type: formData.preferredRoomType !== "any" ? formData.preferredRoomType : null,
         status: "pending",
       });
 
@@ -283,6 +306,29 @@ export default function BookingPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleStep1Continue = () => {
+    setStep1Error("");
+    if (!formData.name.trim()) { setStep1Error("Please enter your full name."); return; }
+    if (!formData.phone.trim()) { setStep1Error("Phone number is required."); return; }
+    if (!isValidIndianPhone(formData.phone)) {
+      setStep1Error("Please enter a valid 10-digit Indian mobile number (e.g. 9876543210 or +91 9876543210).");
+      return;
+    }
+    if (formData.email && !isValidEmail(formData.email)) {
+      setStep1Error("Please enter a valid email address (e.g. name@example.com).");
+      return;
+    }
+    if (!formData.checkInDate) {
+      setStep1Error("Please select a preferred check-in date.");
+      return;
+    }
+    if (isPublic && adults < 1) {
+      setStep1Error("Please add at least 1 adult guest.");
+      return;
+    }
+    setStep(2);
   };
 
   const groupByFloor = (groups: RoomGroup[]) => {
@@ -507,6 +553,13 @@ export default function BookingPage() {
                     value={`${formData.preferredSharing}-Sharing`}
                   />
                 )}
+                {formData.preferredRoomType !== "any" && (
+                  <SummaryRow
+                    icon={Wind}
+                    label="AC Preference"
+                    value={formData.preferredRoomType === "ac" ? "AC Room" : "Non-AC Room"}
+                  />
+                )}
                 {isPublic && (adults > 0 || children > 0) && (
                   <SummaryRow
                     icon={Users}
@@ -627,25 +680,46 @@ export default function BookingPage() {
                           className={inputCls} placeholder="Your full name"
                         />
                       </InputField>
-                      <InputField icon={Phone} label="Phone Number" required>
-                        <input
-                          type="tel" name="phone" required
-                          value={formData.phone} onChange={handleChange}
-                          className={inputCls} placeholder="10-digit mobile number"
-                        />
-                      </InputField>
+                      <div>
+                        <InputField icon={Phone} label="Phone Number" required>
+                          <input
+                            type="tel" name="phone" required
+                            value={formData.phone}
+                            onChange={(e) => { handleChange(e); if (fieldErrors.phone) setFieldErrors((p) => ({ ...p, phone: undefined })); }}
+                            onBlur={(e) => {
+                              const v = e.target.value.trim();
+                              if (!v) setFieldErrors((p) => ({ ...p, phone: "Phone number is required." }));
+                              else if (!isValidIndianPhone(v)) setFieldErrors((p) => ({ ...p, phone: "Enter a valid 10-digit Indian mobile number." }));
+                              else setFieldErrors((p) => ({ ...p, phone: undefined }));
+                            }}
+                            className={`${inputCls} ${fieldErrors.phone ? "border-red-400 focus:ring-red-200 focus:border-red-400" : ""}`}
+                            placeholder="10-digit mobile number"
+                          />
+                        </InputField>
+                        {fieldErrors.phone && <p className="text-red-500 text-xs mt-1 pl-1">{fieldErrors.phone}</p>}
+                      </div>
                     </div>
 
-                    <InputField icon={Mail} label="Email Address">
-                      <input
-                        type="email" name="email"
-                        value={formData.email} onChange={handleChange}
-                        className={inputCls} placeholder="Optional — for booking confirmation email"
-                      />
-                    </InputField>
+                    <div>
+                      <InputField icon={Mail} label="Email Address">
+                        <input
+                          type="email" name="email"
+                          value={formData.email}
+                          onChange={(e) => { handleChange(e); if (fieldErrors.email) setFieldErrors((p) => ({ ...p, email: undefined })); }}
+                          onBlur={(e) => {
+                            const v = e.target.value.trim();
+                            if (v && !isValidEmail(v)) setFieldErrors((p) => ({ ...p, email: "Enter a valid email address (e.g. name@example.com)." }));
+                            else setFieldErrors((p) => ({ ...p, email: undefined }));
+                          }}
+                          className={`${inputCls} ${fieldErrors.email ? "border-red-400 focus:ring-red-200 focus:border-red-400" : ""}`}
+                          placeholder="Optional — for booking confirmation email"
+                        />
+                      </InputField>
+                      {fieldErrors.email && <p className="text-red-500 text-xs mt-1 pl-1">{fieldErrors.email}</p>}
+                    </div>
 
                     <div className="grid sm:grid-cols-2 gap-5">
-                      <InputField icon={Calendar} label="Preferred Check-in Date">
+                      <InputField icon={Calendar} label="Preferred Check-in Date" required>
                         <input
                           type="date" name="checkInDate"
                           value={formData.checkInDate} onChange={handleChange}
@@ -690,10 +764,42 @@ export default function BookingPage() {
                       </div>
                     </div>
 
+                    {/* AC / Non-AC preference (shown for all booking modes) */}
+                    <div>
+                      <label className="block text-sm font-medium text-navy mb-3">
+                        Preferred Room Type <span className="text-text-muted text-xs font-normal">(optional)</span>
+                      </label>
+                      <div className="grid grid-cols-3 gap-3">
+                        {[
+                          { value: "any" as const,    label: "Any",      sub: "No preference",     icon: "🏠" },
+                          { value: "ac" as const,     label: "AC Room",  sub: "Air conditioned",   icon: "❄️" },
+                          { value: "non-ac" as const, label: "Non-AC",   sub: "Fan room",          icon: "🌀" },
+                        ].map((opt) => (
+                          <button
+                            key={opt.value} type="button"
+                            onClick={() => setFormData({ ...formData, preferredRoomType: opt.value })}
+                            className={`flex flex-col items-center gap-2 py-4 px-3 rounded-xl border-2 transition-all text-center ${
+                              formData.preferredRoomType === opt.value
+                                ? "border-primary bg-primary/5 text-primary"
+                                : "border-surface-tertiary text-text-secondary hover:border-primary/30 hover:bg-surface-primary"
+                            }`}
+                          >
+                            <span className="text-lg leading-none">{opt.icon}</span>
+                            <div>
+                              <p className="text-xs font-bold">{opt.label}</p>
+                              <p className="text-[10px] opacity-60 mt-0.5">{opt.sub}</p>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
                     {/* Student: Sharing preference / Public: Guest count */}
                     {isPublic ? (
                       <div>
-                        <label className="block text-sm font-medium text-navy mb-3">Number of Guests</label>
+                        <label className="block text-sm font-medium text-navy mb-3">
+                          Number of Guests <span className="text-primary">*</span>
+                        </label>
                         <div className="space-y-3">
                           <div className="flex items-center justify-between p-4 rounded-xl border-2 border-surface-tertiary">
                             <div>
@@ -775,11 +881,16 @@ export default function BookingPage() {
                     )}
                   </div>
 
-                  <div className="mt-8 pt-6 border-t border-surface-tertiary">
+                  {step1Error && (
+                    <div className="px-4 py-3 bg-red-50 border border-red-100 rounded-xl text-red-600 text-sm">
+                      {step1Error}
+                    </div>
+                  )}
+
+                  <div className="pt-2">
                     <button
-                      onClick={() => setStep(2)}
-                      disabled={!formData.name || !formData.phone}
-                      className="w-full flex items-center justify-center gap-2 py-4 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-primary/25 text-sm"
+                      onClick={handleStep1Continue}
+                      className="w-full flex items-center justify-center gap-2 py-4 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-all shadow-lg shadow-primary/25 text-sm"
                     >
                       {isPublic ? "Choose Building" : "Continue to Availability"}
                       <ChevronRight size={18} />

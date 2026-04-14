@@ -20,10 +20,10 @@ const highlights = [
 ];
 
 const stats = [
-  { value: 2020, label: "Year Est.",         prefix: "",  suffix: ""   },
-  { value: 500,  label: "Happy Residents",   prefix: "",  suffix: "+"  },
-  { value: 15,   label: "Amenities",         prefix: "",  suffix: "+"  },
-  { value: 4.8,  label: "Google Rating",     prefix: "",  suffix: "★", decimals: 1 },
+  { value: 2015, label: "Year Est.",         prefix: "",  suffix: ""   },
+  { value: 1000, label: "Happy Residents",   prefix: "",  suffix: "+"  },
+  { value: 21,   label: "Amenities",         prefix: "",  suffix: "+"  },
+  { value: 4.6,  label: "Google Rating",     prefix: "",  suffix: "★", decimals: 1 },
 ];
 
 export default function Welcome() {
@@ -97,7 +97,7 @@ export default function Welcome() {
                   <Star key={i} size={14} className="fill-amber-400 text-amber-400" />
                 ))}
               </div>
-              <span className="text-sm font-semibold text-navy">4.8 on Google Reviews</span>
+              <span className="text-sm font-semibold text-navy">4.6 on Google Reviews</span>
               <ArrowRight size={14} className="text-primary ml-auto group-hover:translate-x-1 transition-transform" />
             </motion.a>
           </AnimatedSection>
