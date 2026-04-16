@@ -53,6 +53,7 @@ export default function PaymentsPage() {
   const [saving, setSaving] = useState(false);
   const [showGraph, setShowGraph] = useState(true);
   const [studentFilter, setStudentFilter] = useState("all");
+  const [modalBuilding, setModalBuilding] = useState<"gold" | "silver">("gold");
   const [dueModal, setDueModal] = useState<{ studentId: string; studentName: string; rent: number; paid: number } | null>(null);
   const [commentModal, setCommentModal] = useState<{ name: string; comment: string; room_no: string; building: string } | null>(null);
   const [form, setForm] = useState({
@@ -141,6 +142,7 @@ export default function PaymentsPage() {
     await supabase.from("student_payments").insert(form);
     logActivity("create", "payments", `Payment ₹${form.amount_paid} for ${form.student_name} (${form.month} ${form.year})`);
     setShowAdd(false);
+    setModalBuilding("gold");
     setForm({
       student_id: "", building: "gold", room_no: "", student_name: "",
       month: currentMonth, year: currentYear, amount_paid: 0,
@@ -507,6 +509,30 @@ export default function PaymentsPage() {
             </div>
             <div className="p-6 space-y-4">
               <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Select Building</label>
+                <div className="flex gap-2">
+                  {(["gold", "silver"] as const).map((b) => (
+                    <button
+                      key={b}
+                      onClick={() => {
+                        setModalBuilding(b);
+                        setForm({ ...form, student_id: "", student_name: "", room_no: "", building: b, amount_paid: 0 });
+                      }}
+                      className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-all ${
+                        modalBuilding === b
+                          ? b === "gold"
+                            ? "bg-amber-50 border-amber-300 text-amber-700"
+                            : "bg-slate-100 border-slate-300 text-slate-700"
+                          : "bg-white border-gray-200 text-gray-400 hover:border-gray-300"
+                      }`}
+                    >
+                      {b === "gold" ? "Gold Building" : "Silver Building"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Select Student</label>
                 <select
                   value={form.student_id}
@@ -514,9 +540,9 @@ export default function PaymentsPage() {
                   className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none"
                 >
                   <option value="">— Choose Student —</option>
-                  {students.map((s) => (
+                  {students.filter((s) => s.building === modalBuilding).map((s) => (
                     <option key={s.id} value={s.id}>
-                      [{s.building === "gold" ? "Gold" : "Silver"}] Room {s.room_no} · {s.name}
+                      Room {s.room_no} · {s.name}
                     </option>
                   ))}
                 </select>
