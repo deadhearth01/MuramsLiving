@@ -330,21 +330,26 @@ export default function Footer() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-white/40">
             <p>© {currentYear} Murams Living. All rights reserved.</p>
             <div className="flex items-center gap-6">
-              <Link
-                href="/privacy"
-                className="hover:text-white transition-colors"
-              >
-                Privacy Policy
-              </Link>
-              <Link
-                href="/terms"
-                className="hover:text-white transition-colors"
-              >
-                Terms of Service
-              </Link>
+              <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
+              <Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Crafted by */}
+      <div className="bg-black/30 border-t border-white/5 py-3 text-center">
+        <p className="text-xs text-white/25">
+          Crafted by{" "}
+          <a
+            href="https://theavni.studio"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-white/40 hover:text-white transition-colors font-medium"
+          >
+            AVNI Studio
+          </a>
+        </p>
       </div>
     </footer>
   );
