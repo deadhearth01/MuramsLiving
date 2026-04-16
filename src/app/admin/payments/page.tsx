@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { createClient } from "@/utils/supabase/client";
-import { CreditCard, Plus, Search, Trash2, X, IndianRupee, BarChart3, ChevronDown, ChevronUp, AlertCircle, CheckCircle, XCircle } from "lucide-react";
+import { CreditCard, Plus, Search, Trash2, X, IndianRupee, BarChart3, ChevronDown, ChevronUp, AlertCircle, CheckCircle, XCircle, Pencil } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
@@ -54,6 +54,8 @@ export default function PaymentsPage() {
   const [showGraph, setShowGraph] = useState(true);
   const [studentFilter, setStudentFilter] = useState("all");
   const [modalBuilding, setModalBuilding] = useState<"gold" | "silver">("gold");
+  const [editPayment, setEditPayment] = useState<Payment | null>(null);
+  const [editSaving, setEditSaving] = useState(false);
   const [dueModal, setDueModal] = useState<{ studentId: string; studentName: string; rent: number; paid: number } | null>(null);
   const [commentModal, setCommentModal] = useState<{ name: string; comment: string; room_no: string; building: string } | null>(null);
   const [form, setForm] = useState({
@@ -158,6 +160,18 @@ export default function PaymentsPage() {
     await supabase.from("student_payments").delete().eq("id", id);
     logActivity("delete", "payments", `Deleted payment record ${id}`);
     await fetchData();
+  };
+
+  const handleUpdate = async () => {
+    if (!editPayment) return;
+    setEditSaving(true);
+    const supabase = createClient();
+    const { id, created_at, student_id, building, room_no, student_name, ...fields } = editPayment;
+    await supabase.from("student_payments").update(fields).eq("id", id);
+    logActivity("update", "payments", `Updated payment for ${student_name} (${editPayment.month} ${editPayment.year})`);
+    setEditPayment(null);
+    await fetchData();
+    setEditSaving(false);
   };
 
   // Graph data — all months of selected year, all buildings
@@ -324,6 +338,7 @@ export default function PaymentsPage() {
                   <th className="text-left px-4 py-3 font-semibold text-gray-500">Mode</th>
                   <th className="text-left px-4 py-3 font-semibold text-gray-500">Status</th>
                   <th className="text-left px-4 py-3 font-semibold text-gray-500">Del</th>
+                  <th className="text-left px-4 py-3 font-semibold text-gray-500">Edit</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
@@ -391,6 +406,11 @@ export default function PaymentsPage() {
                     <td className="px-4 py-3">
                       <button onClick={() => handleDelete(p.id)} className="text-gray-400 hover:text-red-500 transition-colors">
                         <Trash2 size={14} />
+                      </button>
+                    </td>
+                    <td className="px-4 py-3">
+                      <button onClick={() => setEditPayment({ ...p })} className="text-gray-400 hover:text-primary transition-colors">
+                        <Pencil size={14} />
                       </button>
                     </td>
                   </tr>
@@ -655,6 +675,107 @@ export default function PaymentsPage() {
                 className="flex-[2] py-3 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark text-sm disabled:opacity-60"
               >
                 {saving ? "Saving..." : "Add Payment"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Payment Modal */}
+      {editPayment && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+            <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-gray-900 text-lg">Edit Payment</h3>
+                <p className="text-xs text-gray-400 mt-0.5">{editPayment.student_name} · Room {editPayment.room_no}</p>
+              </div>
+              <button onClick={() => setEditPayment(null)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Month</label>
+                  <select
+                    value={editPayment.month}
+                    onChange={(e) => setEditPayment({ ...editPayment, month: e.target.value })}
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none"
+                  >
+                    {MONTHS.map((m) => <option key={m}>{m}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Year</label>
+                  <select
+                    value={editPayment.year}
+                    onChange={(e) => setEditPayment({ ...editPayment, year: Number(e.target.value) })}
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none"
+                  >
+                    {[2024, 2025, 2026].map((y) => <option key={y}>{y}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Amount Paid (₹)</label>
+                  <div className="relative">
+                    <IndianRupee size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="number"
+                      value={editPayment.amount_paid}
+                      onChange={(e) => setEditPayment({ ...editPayment, amount_paid: Number(e.target.value) })}
+                      className="w-full pl-8 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Payment Date</label>
+                  <input
+                    type="date"
+                    value={editPayment.payment_date}
+                    onChange={(e) => setEditPayment({ ...editPayment, payment_date: e.target.value })}
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Payment Mode</label>
+                  <select
+                    value={editPayment.payment_mode}
+                    onChange={(e) => setEditPayment({ ...editPayment, payment_mode: e.target.value })}
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none"
+                  >
+                    <option value="cash">Cash</option>
+                    <option value="upi">UPI</option>
+                    <option value="bank_transfer">Bank Transfer</option>
+                    <option value="cheque">Cheque</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Comment</label>
+                  <input
+                    type="text"
+                    value={editPayment.comment || ""}
+                    onChange={(e) => setEditPayment({ ...editPayment, comment: e.target.value })}
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    placeholder="Optional note"
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="p-6 border-t border-gray-100 flex gap-3">
+              <button onClick={() => setEditPayment(null)} className="flex-1 py-3 border border-gray-200 text-gray-600 font-semibold rounded-xl hover:bg-gray-50 text-sm">
+                Cancel
+              </button>
+              <button
+                onClick={handleUpdate}
+                disabled={editSaving}
+                className="flex-[2] py-3 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark text-sm disabled:opacity-60"
+              >
+                {editSaving ? "Saving..." : "Save Changes"}
               </button>
             </div>
           </div>
