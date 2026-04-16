@@ -38,8 +38,8 @@ const contactDetails = [
   {
     icon: MapPin,
     title: "Location",
-    lines: ["Rushikonda, Visakhapatnam", "Andhra Pradesh — 530045"],
-    action: "https://maps.google.com/?q=Rushikonda+Visakhapatnam",
+    lines: ["Opp. Kangaroo Kids, Chinna Bazaar,", "Rushikonda, Visakhapatnam, AP — 530045"],
+    action: "https://maps.app.goo.gl/sb63eA3F1TU4m9NJA",
   },
   {
     icon: Clock,
@@ -447,10 +447,10 @@ export default function ContactPageClient() {
                 Murams Living
               </h3>
               <p className="text-white/60 text-sm mb-4">
-                Rushikonda, Visakhapatnam, Andhra Pradesh
+                Opp. Kangaroo Kids, Chinna Bazaar, Rushikonda, Visakhapatnam, Andhra Pradesh
               </p>
               <a
-                href="https://maps.google.com/?q=Rushikonda+Visakhapatnam"
+                href="https://maps.app.goo.gl/sb63eA3F1TU4m9NJA"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 bg-primary hover:bg-primary-dark text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition-colors"

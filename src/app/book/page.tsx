@@ -588,9 +588,9 @@ export default function BookingPage() {
         </div>
 
         {/* Pricing Card */}
-        {pricingData.length > 0 && (() => {
+        {pricingData.length > 0 && formData.preferredBuilding !== "any" && (() => {
           const category = isPublic ? "public" : "student";
-          const building = formData.preferredBuilding !== "any" ? formData.preferredBuilding : "gold";
+          const building = formData.preferredBuilding;
           const relevantPrices = pricingData.filter((p) => p.building === building && p.category === category);
           if (relevantPrices.length === 0) return null;
 

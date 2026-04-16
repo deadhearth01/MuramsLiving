@@ -301,9 +301,9 @@ export default function Footer() {
                       Address
                     </div>
                     <div className="text-sm">
-                      Murams Living, Rushikonda,
+                      Opp. Kangaroo Kids, Chinna Bazaar,
                       <br />
-                      Visakhapatnam, AP - 530045
+                      Rushikonda, Visakhapatnam, AP - 530045
                     </div>
                   </div>
                 </div>
@@ -312,7 +312,7 @@ export default function Footer() {
 
             {/* Map Link */}
             <a
-              href="https://maps.google.com/?q=Rushikonda,Visakhapatnam"
+              href="https://maps.app.goo.gl/sb63eA3F1TU4m9NJA"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 mt-6 text-sm text-primary hover:text-primary-light transition-colors"

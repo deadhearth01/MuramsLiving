@@ -215,7 +215,7 @@ export default function NearbyAttractions() {
               </p>
             </div>
             <a
-              href="https://maps.google.com/?q=Murams+Living+Rushikonda+Visakhapatnam"
+              href="https://maps.app.goo.gl/sb63eA3F1TU4m9NJA"
               target="_blank"
               rel="noopener noreferrer"
               className="relative group flex items-center gap-3 px-7 py-3.5 bg-white text-navy font-semibold rounded-xl hover:bg-primary hover:text-white transition-all duration-300 shrink-0 text-sm"

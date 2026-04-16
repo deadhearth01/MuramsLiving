@@ -101,7 +101,7 @@ export default function Hero() {
       <AnimatePresence>
         {isLoaded && (
           <motion.a
-            href="https://maps.app.goo.gl/4nWFLswApRBM9YB87"
+            href="https://maps.app.goo.gl/sb63eA3F1TU4m9NJA"
             target="_blank"
             rel="noopener noreferrer"
             initial={{ opacity: 0, y: 20 }}
