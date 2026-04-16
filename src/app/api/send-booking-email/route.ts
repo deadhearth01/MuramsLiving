@@ -245,7 +245,7 @@ export async function POST(req: NextRequest) {
       );
       return NextResponse.json(
         { skipped: true, reason: "SMTP not configured" },
-        { status: 200 },
+        { status: 503 },
       );
     }
 
@@ -255,6 +255,16 @@ export async function POST(req: NextRequest) {
       secure: port === 465,
       auth: { user, pass },
     });
+
+    try {
+      await transporter.verify();
+    } catch (verifyErr) {
+      console.error("SMTP connection/auth verification failed:", verifyErr);
+      return NextResponse.json(
+        { error: "SMTP connection/auth failed" },
+        { status: 502 },
+      );
+    }
 
     const subject = `Booking Request Received — Room ${body.roomGroup}, ${body.building === "gold" ? "Gold" : "Silver"} Building`;
     const html = buildEmailHtml(body);

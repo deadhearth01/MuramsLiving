@@ -12,7 +12,7 @@ import { createClient } from "@/utils/supabase/client";
 type BookingMode = "student" | "public";
 
 type Step = 1 | 2 | 3 | 4;
-type Sharing = "any" | "2" | "3" | "4" | "6";
+type Sharing = "any" | "2" | "3" | "4";
 
 interface RawRoom {
   id: string;
@@ -139,17 +139,22 @@ export default function BookingPage() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [bookingId, setBookingId] = useState("");
   const [error,    setError]    = useState("");
+  const [pricingData, setPricingData] = useState<{ item_name: string; amount: number; building: string; category: string; price_type: string }[]>([]);
 
   const STEPS = bookingMode === "student" ? STUDENT_STEPS : PUBLIC_STEPS;
   const isPublic = bookingMode === "public";
 
-  // Fetch booking mode from site_settings
+  // Fetch booking mode and pricing from site_settings
   useEffect(() => {
     (async () => {
       try {
         const supabase = createClient();
-        const { data } = await supabase.from("site_settings").select("value").eq("key", "booking_preference").single();
-        if (data?.value) setBookingMode(data.value as BookingMode);
+        const [{ data: settingsData }, { data: priceData }] = await Promise.all([
+          supabase.from("site_settings").select("value").eq("key", "booking_preference").single(),
+          supabase.from("pricing_config").select("item_name, amount, building, category, price_type").eq("is_visible", true).order("display_order"),
+        ]);
+        if (settingsData?.value) setBookingMode(settingsData.value as BookingMode);
+        if (priceData) setPricingData(priceData);
       } catch { /* default student */ }
       setModeLoaded(true);
     })();
@@ -581,6 +586,78 @@ export default function BookingPage() {
             </p>
           </div>
         </div>
+
+        {/* Pricing Card */}
+        {pricingData.length > 0 && (() => {
+          const category = isPublic ? "public" : "student";
+          const building = formData.preferredBuilding !== "any" ? formData.preferredBuilding : "gold";
+          const relevantPrices = pricingData.filter((p) => p.building === building && p.category === category);
+          if (relevantPrices.length === 0) return null;
+
+          if (isPublic) {
+            // Dynamic per-person calculation
+            const perAdult = relevantPrices.find((p) => p.price_type === "per_adult");
+            const perChild = relevantPrices.find((p) => p.price_type === "per_child");
+            const extras = relevantPrices.filter((p) => p.price_type === "item" || !p.price_type);
+            const adultRate = perAdult?.amount || 0;
+            const childRate = perChild?.amount || 0;
+            const extrasTotal = extras.reduce((s, p) => s + (p.amount || 0), 0);
+            const nightlyTotal = (adults * adultRate) + (children * childRate) + extrasTotal;
+
+            return (
+              <div className="mt-4 bg-white rounded-2xl border border-surface-tertiary overflow-hidden shadow-sm">
+                <div className={`px-4 py-3 border-b ${building === "gold" ? "bg-yellow-50 border-yellow-100" : "bg-slate-50 border-slate-100"}`}>
+                  <p className="text-xs font-bold text-text-secondary uppercase tracking-wide">
+                    Estimated Price / Night
+                  </p>
+                </div>
+                <div className="p-4 space-y-1.5">
+                  {perAdult && (
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-text-secondary">{adults} adult{adults !== 1 ? "s" : ""} × ₹{adultRate.toLocaleString("en-IN")}</span>
+                      <span className="font-bold text-navy">₹{(adults * adultRate).toLocaleString("en-IN")}</span>
+                    </div>
+                  )}
+                  {perChild && children > 0 && (
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-text-secondary">{children} child{children !== 1 ? "ren" : ""} × ₹{childRate.toLocaleString("en-IN")}</span>
+                      <span className="font-bold text-navy">₹{(children * childRate).toLocaleString("en-IN")}</span>
+                    </div>
+                  )}
+                  {extras.map((p) => (
+                    <div key={`${p.building}-${p.item_name}`} className="flex items-center justify-between text-xs">
+                      <span className="text-text-secondary">{p.item_name}</span>
+                      <span className="font-bold text-navy">₹{p.amount.toLocaleString("en-IN")}</span>
+                    </div>
+                  ))}
+                  <div className="border-t border-surface-tertiary pt-2 mt-2 flex items-center justify-between">
+                    <span className="text-xs font-semibold text-text-secondary">Total / night</span>
+                    <span className="font-bold text-primary text-base">₹{nightlyTotal.toLocaleString("en-IN")}</span>
+                  </div>
+                </div>
+              </div>
+            );
+          }
+
+          // Student: flat list
+          return (
+            <div className="mt-4 bg-white rounded-2xl border border-surface-tertiary overflow-hidden shadow-sm">
+              <div className={`px-4 py-3 border-b ${building === "gold" ? "bg-yellow-50 border-yellow-100" : "bg-slate-50 border-slate-100"}`}>
+                <p className="text-xs font-bold text-text-secondary uppercase tracking-wide">
+                  {building === "gold" ? "Gold" : "Silver"} Building Pricing
+                </p>
+              </div>
+              <div className="p-4 space-y-2">
+                {relevantPrices.map((p) => (
+                  <div key={`${p.building}-${p.item_name}`} className="flex items-center justify-between text-sm">
+                    <span className="text-text-secondary text-xs">{p.item_name}</span>
+                    <span className="font-bold text-navy text-xs">₹{p.amount.toLocaleString("en-IN")}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
       </div>
     );
   };
@@ -855,13 +932,12 @@ export default function BookingPage() {
                       <div>
                         <label className="block text-sm font-medium text-navy mb-1">Preferred Room Type</label>
                         <p className="text-xs text-text-secondary mb-3">How many people in a room?</p>
-                        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                           {([
                             { value: "any", label: "Any",  sub: "No preference" },
                             { value: "2",   label: "2×",   sub: "2-sharing" },
                             { value: "3",   label: "3×",   sub: "3-sharing" },
                             { value: "4",   label: "4×",   sub: "4-sharing" },
-                            { value: "6",   label: "6×",   sub: "6-sharing" },
                           ] as { value: Sharing; label: string; sub: string }[]).map((opt) => (
                             <button
                               key={opt.value} type="button"

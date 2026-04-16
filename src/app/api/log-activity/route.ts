@@ -18,8 +18,12 @@ export async function POST(request: NextRequest) {
         userId = data.id || "unknown";
         userName = data.name || "Unknown";
         userRole = data.role || "unknown";
-      } catch { /* fallback defaults */ }
+      } catch (e) {
+        console.error("[log-activity] Failed to parse session cookie:", e);
+      }
     }
+
+    console.log("[log-activity] user:", userName, "action:", action, "page:", page);
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;

@@ -40,7 +40,7 @@ export default function AdminDashboard() {
         supabase.from("students").select("id", { count: "exact" }).eq("status", "active"),
         supabase.from("rooms").select("status"),
         supabase.from("bookings").select("status"),
-        supabase.from("daily_expenses").select("total_expense").gte("expense_date", firstOfMonth),
+        supabase.from("expense_items").select("amount").gte("expense_date", firstOfMonth),
         supabase.from("workers").select("id", { count: "exact" }).eq("is_fixed_cost", false),
         supabase.from("bookings").select("id, name, phone, preferred_building, selected_room_no, status, created_at").order("created_at", { ascending: false }).limit(5),
       ]);
@@ -55,7 +55,7 @@ export default function AdminDashboard() {
         availableRooms: roomData.filter((r) => r.status === "available").length,
         pendingBookings: bookingData.filter((b) => b.status === "pending").length,
         confirmedBookings: bookingData.filter((b) => b.status === "confirmed").length,
-        thisMonthExpenses: expenseData.reduce((sum, e) => sum + (e.total_expense || 0), 0),
+        thisMonthExpenses: expenseData.reduce((sum, e) => sum + (e.amount || 0), 0),
         totalWorkers: workers.count || 0,
       });
 

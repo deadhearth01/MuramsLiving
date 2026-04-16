@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { Phone, Mail, MapPin, ArrowUpRight, ArrowRight } from "lucide-react";
+import { Phone, Mail, MapPin, ArrowUpRight, ArrowRight, Sparkles } from "lucide-react";
 import {
   FaFacebookF,
   FaInstagram,
@@ -65,6 +65,28 @@ export default function Footer() {
 
   return (
     <footer className="relative bg-navy-dark text-white overflow-hidden">
+      {/* Shimmer keyframe animation for Silver Building link */}
+      <style dangerouslySetInnerHTML={{ __html: String.raw`
+        @keyframes silverShimmer {
+          0% { background-position: -200% center; }
+          100% { background-position: 200% center; }
+        }
+        .silver-shimmer-text {
+          background: linear-gradient(
+            90deg,
+            #94a3b8 0%,
+            #94a3b8 35%,
+            #ffffff 50%,
+            #94a3b8 65%,
+            #94a3b8 100%
+          );
+          background-size: 200% auto;
+          -webkit-background-clip: text;
+          background-clip: text;
+          -webkit-text-fill-color: transparent;
+          animation: silverShimmer 3s linear infinite;
+        }
+      ` }} />
       {/* Background decorations */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[100px]" />
@@ -179,17 +201,39 @@ export default function Footer() {
               Quick Links
             </h3>
             <ul className="space-y-3">
-              {quickLinks.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="group flex items-center gap-2 text-white/70 hover:text-primary text-sm transition-all duration-300"
-                  >
-                    <span className="w-1 h-1 rounded-full bg-primary/50 group-hover:bg-primary group-hover:scale-150 transition-all duration-300" />
-                    <span>{link.label}</span>
-                  </Link>
-                </li>
-              ))}
+              {quickLinks.map((link) => {
+                const isSilver = link.href === "/silver";
+                return (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      className={`group flex items-center gap-2 text-sm transition-all duration-300 ${
+                        isSilver
+                          ? "hover:text-white"
+                          : "text-white/70 hover:text-primary"
+                      }`}
+                    >
+                      <span
+                        className={`w-1 h-1 rounded-full transition-all duration-300 ${
+                          isSilver
+                            ? "bg-slate-400 group-hover:bg-white group-hover:scale-150"
+                            : "bg-primary/50 group-hover:bg-primary group-hover:scale-150"
+                        }`}
+                      />
+                      {isSilver ? (
+                        <span className="flex items-center gap-1.5 font-bold">
+                          <span className="silver-shimmer-text">
+                            {link.label}
+                          </span>
+                          <Sparkles size={12} className="text-slate-400 shrink-0" />
+                        </span>
+                      ) : (
+                        <span>{link.label}</span>
+                      )}
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </div>
 

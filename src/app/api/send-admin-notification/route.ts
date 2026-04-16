@@ -27,7 +27,13 @@ export async function POST(request: NextRequest) {
     const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL;
 
     if (!host || !user || !pass || !adminEmail) {
-      return NextResponse.json({ skipped: true, reason: "SMTP not configured" });
+      console.error(
+        "SMTP not configured — missing SMTP_HOST, SMTP_USER, SMTP_PASS, or ADMIN_NOTIFICATION_EMAIL",
+      );
+      return NextResponse.json(
+        { skipped: true, reason: "SMTP not configured" },
+        { status: 503 },
+      );
     }
 
     const transporter = nodemailer.createTransport({
@@ -36,6 +42,16 @@ export async function POST(request: NextRequest) {
       secure: port === 465,
       auth: { user, pass },
     });
+
+    try {
+      await transporter.verify();
+    } catch (verifyErr) {
+      console.error("SMTP connection/auth verification failed:", verifyErr);
+      return NextResponse.json(
+        { error: "SMTP connection/auth failed" },
+        { status: 502 },
+      );
+    }
 
     const isPublic = body.bookingType === "public";
     const buildingLabel = body.building === "gold" ? "Gold" : body.building === "silver" ? "Silver" : body.building;

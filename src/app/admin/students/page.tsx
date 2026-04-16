@@ -32,6 +32,13 @@ interface Student {
   archived_at: string | null;
 }
 
+interface RoomRow {
+  room_no: string;
+  room_group: string;
+  floor_name: string;
+  floor_order: number;
+}
+
 function isValidIndianPhone(phone: string): boolean {
   return /^(\+91|91|0)?[6-9]\d{9}$/.test(phone.replace(/\s+/g, "").replace(/-/g, ""));
 }
@@ -107,9 +114,13 @@ export default function StudentsPage() {
   const [modal, setModal] = useState<"add" | "edit" | null>(null);
   const [form, setForm] = useState<Partial<Student>>(emptyStudent);
   const [roomOptions, setRoomOptions] = useState<string[]>([]);
+  const [roomData, setRoomData] = useState<RoomRow[]>([]);
+  const [floorOptions, setFloorOptions] = useState<string[]>([]);
+  const [selectedFloor, setSelectedFloor] = useState("");
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<"gold" | "silver">("gold");
   const [actionMenu, setActionMenu] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
   const fetchStudents = useCallback(async () => {
     const supabase = createClient();
@@ -121,7 +132,7 @@ export default function StudentsPage() {
 
   useEffect(() => { fetchStudents(); }, [fetchStudents]);
 
-  // Fetch room numbers for the selected building whenever modal opens or building changes
+  // Fetch room data for selected building whenever modal opens or building changes
   useEffect(() => {
     if (!modal) return;
     (async () => {
@@ -129,16 +140,38 @@ export default function StudentsPage() {
       const building = form.building || "gold";
       const { data } = await supabase
         .from("rooms")
-        .select("room_group, room_no")
+        .select("room_no, room_group, floor_name, floor_order")
         .eq("building", building)
+        .order("floor_order")
         .order("room_no");
       if (data) {
-        // Unique room_group values (each group = one room)
-        const groups = Array.from(new Set(data.map((r: any) => r.room_group || r.room_no).filter(Boolean)));
-        setRoomOptions(groups.sort());
+        setRoomData(data as RoomRow[]);
+        // Unique floors in order
+        const floors = Array.from(new Set(data.map((r: any) => r.floor_name).filter(Boolean)));
+        setFloorOptions(floors);
+        // Reset floor selection when building changes
+        setSelectedFloor("");
+        setRoomOptions([]);
       }
     })();
   }, [modal, form.building]);
+
+  // Update room options when floor is selected
+  useEffect(() => {
+    if (!selectedFloor || !roomData.length) {
+      setRoomOptions([]);
+      return;
+    }
+    const groups = Array.from(
+      new Set(
+        roomData
+          .filter((r) => r.floor_name === selectedFloor)
+          .map((r) => r.room_group || r.room_no)
+          .filter(Boolean)
+      )
+    );
+    setRoomOptions(groups.sort());
+  }, [selectedFloor, roomData]);
 
   useEffect(() => {
     let result = students.filter((s) => s.building === activeTab);
@@ -185,16 +218,29 @@ export default function StudentsPage() {
     }
     setSaving(true);
     const supabase = createClient();
-    if (modal === "add") {
-      await supabase.from("students").insert({ ...form });
+    const wasAdd = modal === "add";
+    let error = null;
+    if (wasAdd) {
+      const res = await supabase.from("students").insert({ ...form });
+      error = res.error;
     } else {
-      await supabase.from("students").update({ ...form, updated_at: new Date().toISOString() }).eq("id", form.id!);
+      const res = await supabase.from("students").update({ ...form, updated_at: new Date().toISOString() }).eq("id", form.id!);
+      error = res.error;
     }
-    logActivity(modal === "add" ? "create" : "update", "students", `${modal === "add" ? "Added" : "Updated"} student: ${form.name}`);
+    if (error) {
+      setSaving(false);
+      setToast({ message: `Failed to ${wasAdd ? "add" : "update"} student: ${error.message}`, type: "error" });
+      setTimeout(() => setToast(null), 5000);
+      return;
+    }
+    logActivity(wasAdd ? "create" : "update", "students", `${wasAdd ? "Added" : "Updated"} student: ${form.name}`);
     setModal(null);
     setForm(emptyStudent);
+    setSelectedFloor("");
     await fetchStudents();
     setSaving(false);
+    setToast({ message: wasAdd ? `Student "${form.name}" added successfully!` : `Student "${form.name}" updated successfully!`, type: "success" });
+    setTimeout(() => setToast(null), 4000);
   };
 
   const handleDelete = async (id: string) => {
@@ -253,9 +299,23 @@ export default function StudentsPage() {
     return (
       <div className="p-6 lg:p-8 space-y-3">
         {[...Array(5)].map((_, i) => <div key={i} className="bg-white rounded-xl p-4 animate-pulse h-16" />)}
-      </div>
-    );
-  }
+      {/* Toast Notification */}
+      {toast && (
+        <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-[100] px-5 py-3 rounded-xl shadow-lg flex items-center gap-2 transition-all ${
+          toast.type === "success" ? "bg-green-600 text-white" : "bg-red-600 text-white"
+        }`}>
+          {toast.type === "success" ? (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          ) : (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+          )}
+          <span className="text-sm font-medium">{toast.message}</span>
+          <button onClick={() => setToast(null)} className="ml-2 text-white/70 hover:text-white"><X size={14} /></button>
+        </div>
+      )}
+    </div>
+  );
+}
 
   return (
     <div className="p-6 lg:p-8">
@@ -272,7 +332,7 @@ export default function StudentsPage() {
             <Archive size={16} /> Archive
           </Link>
           <button
-            onClick={() => { setForm(emptyStudent); setModal("add"); }}
+            onClick={() => { setForm({ ...emptyStudent, building: activeTab }); setSelectedFloor(""); setModal("add"); }}
             className="flex items-center gap-2 px-4 py-2.5 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-all text-sm shadow-sm"
           >
             <Plus size={16} /> Add Student
@@ -327,7 +387,7 @@ export default function StudentsPage() {
                   <th className="text-left px-4 py-3 font-semibold text-gray-500">Room</th>
                   <th className="text-left px-4 py-3 font-semibold text-gray-500">Name</th>
                   <th className="text-left px-4 py-3 font-semibold text-gray-500">Phone</th>
-                  <th className="text-left px-4 py-3 font-semibold text-gray-500">Institution</th>
+                   <th className="text-left px-4 py-3 font-semibold text-gray-500">Advance</th>
                   <th className="text-left px-4 py-3 font-semibold text-gray-500">Rent</th>
                   <th className="text-left px-4 py-3 font-semibold text-gray-500">Join Date</th>
                   <th className="text-left px-4 py-3 font-semibold text-gray-500">Status</th>
@@ -350,9 +410,10 @@ export default function StudentsPage() {
                         </a>
                       ) : "—"}
                     </td>
-                    <td className="px-4 py-3 text-xs text-gray-600">
-                      {student.institution_name || "—"}
-                      {student.branch && <span className="text-gray-400"> · {student.branch}</span>}
+                    <td className="px-4 py-3 text-sm">
+                      {student.advance ? (
+                        <span className="font-semibold text-green-700">₹{student.advance.toLocaleString("en-IN")}</span>
+                      ) : <span className="text-gray-400">—</span>}
                     </td>
                     <td className="px-4 py-3">
                       <div className="text-sm">
@@ -386,7 +447,16 @@ export default function StudentsPage() {
                         {actionMenu === student.id && (
                           <div className="absolute right-0 top-8 bg-white border border-gray-200 rounded-xl shadow-lg z-20 py-1 w-36">
                             <button
-                              onClick={() => { setForm(student); setModal("edit"); setActionMenu(null); }}
+                              onClick={() => {
+                                setForm(student);
+                                setModal("edit");
+                                setActionMenu(null);
+                                // Auto-detect floor from room data after it loads
+                                const supabase = createClient();
+                                supabase.from("rooms").select("floor_name").eq("building", student.building).eq("room_group", student.room_no).limit(1).then(({ data }) => {
+                                  if (data && data[0]) setSelectedFloor(data[0].floor_name);
+                                });
+                              }}
                               className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
                             >
                               <Pencil size={14} /> Edit
@@ -419,21 +489,26 @@ export default function StudentsPage() {
       {modal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm overflow-y-auto">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl my-4">
-            <div className="p-6 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white rounded-t-2xl">
-              <h3 className="font-bold text-gray-900 text-lg">
-                {modal === "add" ? "Add New Student" : "Edit Student"}
-              </h3>
-              <button onClick={() => { setModal(null); setForm(emptyStudent); }} className="text-gray-400 hover:text-gray-600">
+            {/* Building color indicator bar */}
+            <div className={`h-1.5 rounded-t-2xl ${form.building === "gold" ? "bg-yellow-400" : "bg-slate-400"}`} />
+            <div className="p-6 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white">
+              <div className="flex items-center gap-3">
+                <span className={`w-3 h-3 rounded-full ${form.building === "gold" ? "bg-yellow-400" : "bg-slate-400"}`} />
+                <h3 className="font-bold text-gray-900 text-lg">
+                  {modal === "add" ? "Add New Student" : "Edit Student"}
+                </h3>
+              </div>
+              <button onClick={() => { setModal(null); setForm(emptyStudent); setSelectedFloor(""); }} className="text-gray-400 hover:text-gray-600">
                 <X size={20} />
               </button>
             </div>
             <div className="p-6 space-y-4 overflow-y-auto max-h-[70vh]">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-gray-600 mb-1">Building *</label>
                   <select
                     value={form.building}
-                    onChange={(e) => setForm({ ...form, building: e.target.value as "gold" | "silver" })}
+                    onChange={(e) => { setForm({ ...form, building: e.target.value as "gold" | "silver", room_no: "" }); setSelectedFloor(""); }}
                     className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none"
                   >
                     <option value="gold">Gold</option>
@@ -441,11 +516,25 @@ export default function StudentsPage() {
                   </select>
                 </div>
                 <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Floor *</label>
+                  <select
+                    value={selectedFloor}
+                    onChange={(e) => { setSelectedFloor(e.target.value); setForm({ ...form, room_no: "" }); }}
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none"
+                  >
+                    <option value="">— Select Floor —</option>
+                    {floorOptions.map((f) => (
+                      <option key={f} value={f}>{f}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
                   <label className="block text-xs font-medium text-gray-600 mb-1">Room Number *</label>
                   <select
                     value={form.room_no || ""}
                     onChange={(e) => setForm({ ...form, room_no: e.target.value })}
-                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none"
+                    disabled={!selectedFloor}
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none disabled:bg-gray-50 disabled:text-gray-400"
                   >
                     <option value="">— Select Room —</option>
                     {roomOptions.map((r) => (
@@ -533,7 +622,7 @@ export default function StudentsPage() {
             </div>
             <div className="p-6 border-t border-gray-100 flex gap-3">
               <button
-                onClick={() => { setModal(null); setForm(emptyStudent); }}
+                onClick={() => { setModal(null); setForm(emptyStudent); setSelectedFloor(""); }}
                 className="flex-1 py-3 border border-gray-200 text-gray-600 font-semibold rounded-xl hover:bg-gray-50 transition-all text-sm"
               >
                 Cancel

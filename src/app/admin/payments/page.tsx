@@ -54,7 +54,7 @@ export default function PaymentsPage() {
   const [showGraph, setShowGraph] = useState(true);
   const [studentFilter, setStudentFilter] = useState("all");
   const [dueModal, setDueModal] = useState<{ studentId: string; studentName: string; rent: number; paid: number } | null>(null);
-  const [advanceModal, setAdvanceModal] = useState<{ name: string; room_no: string; building: string; advance: number; monthlyRent: number } | null>(null);
+  const [commentModal, setCommentModal] = useState<{ name: string; comment: string; room_no: string; building: string } | null>(null);
   const [form, setForm] = useState({
     student_id: "",
     building: "gold",
@@ -312,56 +312,61 @@ export default function PaymentsPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50 text-xs">
-                  <th className="text-left px-4 py-3 font-semibold text-gray-500">Room</th>
-                  <th className="text-left px-4 py-3 font-semibold text-gray-500">Name</th>
                   <th className="text-left px-4 py-3 font-semibold text-gray-500">Building</th>
-                  <th className="text-left px-4 py-3 font-semibold text-gray-500">Month</th>
-                  <th className="text-left px-4 py-3 font-semibold text-gray-500">Paid Amount</th>
+                  <th className="text-left px-4 py-3 font-semibold text-gray-500">Room No</th>
+                  <th className="text-left px-4 py-3 font-semibold text-gray-500">Name</th>
+                  <th className="text-left px-4 py-3 font-semibold text-gray-500">Advance</th>
                   <th className="text-left px-4 py-3 font-semibold text-gray-500">Monthly Rent</th>
-                  <th className="text-left px-4 py-3 font-semibold text-gray-500">Date</th>
+                  <th className="text-left px-4 py-3 font-semibold text-gray-500">Paid Amount</th>
+                  <th className="text-left px-4 py-3 font-semibold text-gray-500">Date of Payment</th>
                   <th className="text-left px-4 py-3 font-semibold text-gray-500">Mode</th>
-                  <th className="text-left px-4 py-3 font-semibold text-gray-500">Comment</th>
                   <th className="text-left px-4 py-3 font-semibold text-gray-500">Status</th>
                   <th className="text-left px-4 py-3 font-semibold text-gray-500">Del</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {filtered.map((p) => (
+                {filtered.map((p) => {
+                  const s = students.find((s) => s.id === p.student_id);
+                  const rent = s ? (s.new_rent || s.monthly_rent || 0) : 0;
+                  const advance = s?.advance || 0;
+                  const status = getPaymentStatus(p.student_id);
+                  return (
                   <tr key={p.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-4 py-3">
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${p.building === "gold" ? "bg-yellow-100 text-yellow-700" : "bg-slate-100 text-slate-600"}`}>
+                        {p.building}
+                      </span>
+                    </td>
                     <td className="px-4 py-3 font-medium text-gray-900">{p.room_no || "—"}</td>
                     <td className="px-4 py-3">
                       <button
                         onClick={() => {
-                          const s = students.find((s) => s.id === p.student_id);
-                          if (s) setAdvanceModal({ name: s.name, room_no: s.room_no, building: s.building, advance: s.advance || 0, monthlyRent: s.new_rent || s.monthly_rent || 0 });
+                          setCommentModal({ name: p.student_name, comment: p.comment || "", room_no: p.room_no, building: p.building });
                         }}
                         className="font-semibold text-gray-900 hover:text-primary transition-colors text-left underline decoration-dotted underline-offset-2"
                       >
                         {p.student_name}
                       </button>
                     </td>
-                    <td className="px-4 py-3">
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${p.building === "gold" ? "bg-yellow-100 text-yellow-700" : "bg-slate-100 text-slate-600"}`}>
-                        {p.building}
-                      </span>
+                    <td className="px-4 py-3 text-sm">
+                      {advance > 0 ? <span className="font-semibold text-green-700">₹{advance.toLocaleString("en-IN")}</span> : <span className="text-gray-400">—</span>}
                     </td>
-                    <td className="px-4 py-3 text-gray-600 text-xs">{p.month} {p.year}</td>
-                    <td className="px-4 py-3 font-bold text-green-700">₹{p.amount_paid?.toLocaleString("en-IN")}</td>
-                    <td className="px-4 py-3 text-gray-700 text-sm">
+                    <td className="px-4 py-3 text-sm">
+                      {rent ? <span className="font-medium text-gray-700">₹{rent.toLocaleString("en-IN")}</span> : <span className="text-gray-400">—</span>}
+                    </td>
+                    <td className="px-4 py-3 font-bold">
                       {(() => {
-                        const s = students.find((s) => s.id === p.student_id);
-                        const rent = s ? (s.new_rent || s.monthly_rent || 0) : 0;
-                        return rent ? <span className="font-medium">₹{rent.toLocaleString("en-IN")}</span> : <span className="text-gray-400">—</span>;
+                        const ratio = rent > 0 ? p.amount_paid / rent : 1;
+                        const color = ratio >= 1 ? "text-green-700" : ratio >= 0.5 ? "text-amber-600" : "text-red-600";
+                        return <span className={color}>₹{p.amount_paid?.toLocaleString("en-IN")}</span>;
                       })()}
                     </td>
                     <td className="px-4 py-3 text-xs text-gray-500">
                       {p.payment_date ? new Date(p.payment_date).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) : "—"}
                     </td>
                     <td className="px-4 py-3 text-xs text-gray-500 capitalize">{p.payment_mode}</td>
-                    <td className="px-4 py-3 text-xs text-gray-400 max-w-[100px] truncate">{p.comment || "—"}</td>
                     <td className="px-4 py-3">
                       {(() => {
-                        const status = getPaymentStatus(p.student_id);
                         if (status.label === "—") return <span className="text-gray-400 text-xs">—</span>;
                         return (
                           <button
@@ -387,7 +392,8 @@ export default function PaymentsPage() {
                       </button>
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -457,37 +463,31 @@ export default function PaymentsPage() {
         </div>
       )}
 
-      {/* Advance Details Modal */}
-      {advanceModal && (
+      {/* Comment Details Modal */}
+      {commentModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm">
             <div className="p-5 border-b border-gray-100 flex items-center justify-between">
-              <h3 className="font-bold text-gray-900">Student Details</h3>
-              <button onClick={() => setAdvanceModal(null)} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
+              <h3 className="font-bold text-gray-900">Payment Comment</h3>
+              <button onClick={() => setCommentModal(null)} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
             </div>
             <div className="p-5 space-y-4">
               <div>
-                <p className="font-semibold text-gray-900 text-lg">{advanceModal.name}</p>
+                <p className="font-semibold text-gray-900 text-lg">{commentModal.name}</p>
                 <p className="text-xs text-gray-400 mt-0.5 capitalize">
-                  {advanceModal.building} Building · Room {advanceModal.room_no}
+                  {commentModal.building} Building · Room {commentModal.room_no}
                 </p>
               </div>
-              <div className="bg-gray-50 rounded-xl p-4 space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-500">Monthly Rent</span>
-                  <span className="text-sm font-bold text-gray-900">₹{advanceModal.monthlyRent.toLocaleString("en-IN")}</span>
-                </div>
-                <div className="flex justify-between items-center border-t border-gray-200 pt-3">
-                  <span className="text-sm text-gray-500">Advance Paid</span>
-                  <span className={`text-sm font-bold ${advanceModal.advance > 0 ? "text-green-600" : "text-gray-400"}`}>
-                    {advanceModal.advance > 0 ? `₹${advanceModal.advance.toLocaleString("en-IN")}` : "—"}
-                  </span>
-                </div>
+              <div className="bg-gray-50 rounded-xl p-4">
+                <p className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">Comment</p>
+                <p className="text-sm text-gray-700">
+                  {commentModal.comment || "No comment added for this payment."}
+                </p>
               </div>
             </div>
             <div className="p-5 border-t border-gray-100">
               <button
-                onClick={() => setAdvanceModal(null)}
+                onClick={() => setCommentModal(null)}
                 className="w-full py-2.5 bg-gray-100 text-gray-700 font-semibold rounded-xl hover:bg-gray-200 text-sm"
               >
                 Close

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
@@ -16,6 +17,7 @@ import {
   Sparkles,
   Layers,
 } from "lucide-react";
+import { createClient } from "@/utils/supabase/client";
 
 const features = [
   {
@@ -56,29 +58,43 @@ const features = [
   },
 ];
 
-const roomTypes = [
+const defaultRoomTypes = [
   {
-    type: "Silver Non-AC",
-    price: "Starting ₹6,500/mo",
+    type: "2-Sharing Room",
+    price: "Starting ₹9,000/mo",
+    sharing: "2",
     highlights: [
-      "Furnished room",
+      "Semi-private room",
+      "Furnished with study table & chair",
+      "Wardrobe & personal storage",
+      "Attached bathroom",
+      "All meals included",
+    ],
+    featured: true,
+  },
+  {
+    type: "3-Sharing Room",
+    price: "Starting ₹7,500/mo",
+    sharing: "3",
+    highlights: [
+      "Spacious shared room",
       "Study table & chair",
       "Wardrobe",
-      "Attached/shared bath",
+      "Attached/shared bathroom",
       "All meals included",
     ],
   },
   {
-    type: "Silver AC",
-    price: "Starting ₹8,000/mo",
+    type: "4-Sharing Room",
+    price: "Starting ₹6,500/mo",
+    sharing: "4",
     highlights: [
-      "All Non-AC features",
-      "Air conditioning",
-      "AC servicing included",
-      "Enhanced storage",
-      "Priority room allocation",
+      "Budget-friendly option",
+      "Study table & chair",
+      "Wardrobe",
+      "Shared bathroom",
+      "All meals included",
     ],
-    featured: true,
   },
 ];
 
@@ -104,6 +120,35 @@ const fadeUp = {
 };
 
 export default function SilverPageClient() {
+  const [roomTypes, setRoomTypes] = useState(defaultRoomTypes);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const supabase = createClient();
+        const { data } = await supabase
+          .from("pricing_config")
+          .select("item_name, amount")
+          .eq("category", "student")
+          .eq("building", "silver")
+          .eq("is_visible", true)
+          .order("display_order");
+        if (data && data.length > 0) {
+          const priceMap: Record<string, number> = {};
+          data.forEach((d) => { priceMap[d.item_name] = d.amount; });
+          setRoomTypes((prev) =>
+            prev.map((room) => ({
+              ...room,
+              price: priceMap[room.type]
+                ? `Starting ₹${Number(priceMap[room.type]).toLocaleString("en-IN")}/mo`
+                : room.price,
+            }))
+          );
+        }
+      } catch { /* fallback to defaults */ }
+    })();
+  }, []);
+
   return (
     <div className="min-h-screen bg-white">
       {/* Hero */}
@@ -219,15 +264,15 @@ export default function SilverPageClient() {
         <div className="container-custom">
           <div className="text-center max-w-2xl mx-auto mb-12">
             <p className="text-slate-500 font-semibold text-sm uppercase tracking-[0.15em] mb-3">
-              Room Options
+              Bed Sharing Options
             </p>
             <h2 className="font-heading font-bold text-3xl md:text-4xl text-navy-dark">
               Choose Your
               <br />
-              Silver Room
+              Room
             </h2>
           </div>
-          <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
             {roomTypes.map((room, i) => (
               <motion.div
                 key={room.type}
@@ -264,7 +309,7 @@ export default function SilverPageClient() {
                   ))}
                 </ul>
                 <Link
-                  href="/book?building=silver"
+                  href={`/book?building=silver&sharing=${room.sharing}`}
                   className={`block w-full text-center py-3 rounded-xl font-semibold text-sm transition-all ${
                     room.featured
                       ? "bg-slate-700 text-white hover:bg-slate-800"
