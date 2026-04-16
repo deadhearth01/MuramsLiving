@@ -340,7 +340,7 @@ export default function Footer() {
       {/* Crafted by */}
       <div className="bg-black/30 border-t border-white/5 py-3 text-center">
         <p className="text-xs text-white/25">
-          Crafted by{" "}
+          Crafted with <span className="text-red-400/60">♥</span> by{" "}
           <a
             href="https://theavni.studio"
             target="_blank"
