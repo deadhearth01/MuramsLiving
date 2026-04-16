@@ -151,7 +151,6 @@ export default function Header() {
                           <AnimatePresence>
                             {(isActive || isHovered) && (
                               <motion.span
-                                layoutId="navIndicator"
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
@@ -162,10 +161,7 @@ export default function Header() {
                           </AnimatePresence>
 
                           {isActive && (
-                            <motion.span
-                              layoutId="activeUnderline"
-                              className="absolute bottom-0 left-4 right-4 h-0.5 bg-gradient-to-r from-primary to-primary-light rounded-full"
-                            />
+                            <span className="absolute bottom-0 left-4 right-4 h-0.5 bg-gradient-to-r from-primary to-primary-light rounded-full" />
                           )}
                         </button>
 
@@ -231,7 +227,6 @@ export default function Header() {
                         <AnimatePresence>
                           {(isActive || isHovered) && (
                             <motion.span
-                              layoutId="navIndicator"
                               initial={{ opacity: 0 }}
                               animate={{ opacity: 1 }}
                               exit={{ opacity: 0 }}
@@ -242,14 +237,11 @@ export default function Header() {
                         </AnimatePresence>
 
                         {isActive && (
-                          <motion.span
-                            layoutId="activeUnderline"
-                            className={`absolute bottom-0 left-4 right-4 h-0.5 rounded-full ${
-                              isSilver
-                                ? "bg-gradient-to-r from-slate-400 to-slate-300"
-                                : "bg-gradient-to-r from-primary to-primary-light"
-                            }`}
-                          />
+                          <span className={`absolute bottom-0 left-4 right-4 h-0.5 rounded-full ${
+                            isSilver
+                              ? "bg-gradient-to-r from-slate-400 to-slate-300"
+                              : "bg-gradient-to-r from-primary to-primary-light"
+                          }`} />
                         )}
                       </Link>
                     </li>
