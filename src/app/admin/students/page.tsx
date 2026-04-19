@@ -32,12 +32,19 @@ interface Student {
   archived_at: string | null;
 }
 
-interface RoomRow {
-  room_no: string;
-  room_group: string;
-  floor_name: string;
-  floor_order: number;
-}
+const STATIC_ROOMS: Record<string, Record<string, string[]>> = {
+  gold: {
+    "1st Floor": ["11-1","11-2","12-1","12-2","12-3","13-1","13-2","13-3","13-4","14-1","14-2","14-3","15-1","15-2","15-3"],
+    "2nd Floor": ["21-1","21-2","22-1","22-2","22-3","23-1","23-2","23-3","23-4","24-1","24-2","24-3","25-1","25-2","25-3"],
+    "3rd Floor": ["31-1","31-2","32-1","32-2","32-3","33-1","33-2","33-3","33-4","34-1","34-2","34-3","34-4","34-5","35-1","35-2","35-3"],
+    "4th Floor": ["41-1","41-2","42-1","42-2","42-3","43-1","43-2","43-3","43-4","44-1","44-2","44-3","44-4","44-5","44-6"],
+  },
+  silver: {
+    "Ground Floor": ["GF1-H-1","GF1-H-2","GF1-L-1","GF1-L-2","GF1-L-3","GF1-R-1","GF1-R-2","GF1-R-3","GF2-H-1","GF2-H-2","GF2-L-1","GF2-L-2","GF2-L-3","GF2-R-1","GF2-R-2","GF2-R-3"],
+    "1st Floor":    ["FF1-H-1","FF1-H-2","FF1-L-1","FF1-L-2","FF1-L-3","FF1-R-1","FF1-R-2","FF1-R-3","FF2-H-1","FF2-H-2","FF2-L-1","FF2-L-2","FF2-L-3","FF2-R-1","FF2-R-2","FF2-R-3"],
+    "2nd Floor":    ["SF1-H-1","SF1-H-2","SF1-L-1","SF1-L-2","SF1-L-3","SF1-R-1","SF1-R-2","SF1-R-3","SF2-H-1","SF2-H-2","SF2-L-1","SF2-L-2","SF2-L-3","SF2-R-1","SF2-R-2","SF2-R-3"],
+  },
+};
 
 function isValidIndianPhone(phone: string): boolean {
   return /^(\+91|91|0)?[6-9]\d{9}$/.test(phone.replace(/\s+/g, "").replace(/-/g, ""));
@@ -114,7 +121,6 @@ export default function StudentsPage() {
   const [modal, setModal] = useState<"add" | "edit" | null>(null);
   const [form, setForm] = useState<Partial<Student>>(emptyStudent);
   const [roomOptions, setRoomOptions] = useState<string[]>([]);
-  const [roomData, setRoomData] = useState<RoomRow[]>([]);
   const [floorOptions, setFloorOptions] = useState<string[]>([]);
   const [selectedFloor, setSelectedFloor] = useState("");
   const [saving, setSaving] = useState(false);
@@ -132,46 +138,24 @@ export default function StudentsPage() {
 
   useEffect(() => { fetchStudents(); }, [fetchStudents]);
 
-  // Fetch room data for selected building whenever modal opens or building changes
+  // Populate floor options from static data when modal opens or building changes
   useEffect(() => {
     if (!modal) return;
-    (async () => {
-      const supabase = createClient();
-      const building = form.building || "gold";
-      const { data } = await supabase
-        .from("rooms")
-        .select("room_no, room_group, floor_name, floor_order")
-        .eq("building", building)
-        .order("floor_order")
-        .order("room_no");
-      if (data) {
-        setRoomData(data as RoomRow[]);
-        // Unique floors in order
-        const floors = Array.from(new Set(data.map((r: any) => r.floor_name).filter(Boolean)));
-        setFloorOptions(floors);
-        // Reset floor selection when building changes
-        setSelectedFloor("");
-        setRoomOptions([]);
-      }
-    })();
+    const building = form.building || "gold";
+    setFloorOptions(Object.keys(STATIC_ROOMS[building] || {}));
+    setSelectedFloor("");
+    setRoomOptions([]);
   }, [modal, form.building]);
 
   // Update room options when floor is selected
   useEffect(() => {
-    if (!selectedFloor || !roomData.length) {
+    if (!selectedFloor) {
       setRoomOptions([]);
       return;
     }
-    const groups = Array.from(
-      new Set(
-        roomData
-          .filter((r) => r.floor_name === selectedFloor)
-          .map((r) => r.room_group || r.room_no)
-          .filter(Boolean)
-      )
-    );
-    setRoomOptions(groups.sort());
-  }, [selectedFloor, roomData]);
+    const building = form.building || "gold";
+    setRoomOptions(STATIC_ROOMS[building]?.[selectedFloor] || []);
+  }, [selectedFloor, form.building]);
 
   useEffect(() => {
     let result = students.filter((s) => s.building === activeTab);

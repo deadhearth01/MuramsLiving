@@ -91,6 +91,7 @@ export default function BookingsPage() {
       const q = search.toLowerCase();
       result = result.filter(
         (b) =>
+          b.booking_id?.toLowerCase().includes(q) ||
           b.name?.toLowerCase().includes(q) ||
           b.phone?.includes(q) ||
           b.email?.toLowerCase().includes(q)
@@ -173,7 +174,7 @@ export default function BookingsPage() {
           <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
-            placeholder="Search by name, phone, email..."
+            placeholder="Search by booking ID, name, phone, email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"

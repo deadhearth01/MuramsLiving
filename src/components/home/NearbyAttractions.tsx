@@ -70,7 +70,7 @@ const locations: Location[] = [
     fallbackGradient: "from-blue-400 via-sky-500 to-cyan-600",
   },
   {
-    title: "VUDA Stadium",
+    title: "Stadium",
     distance: "6 km",
     time: "12 min drive",
     description:
@@ -151,7 +151,7 @@ export default function NearbyAttractions() {
             <p className="text-primary font-semibold text-sm uppercase tracking-[0.15em] mb-4">
               Prime Location
             </p>
-            <h2 className="font-heading text-4xl lg:text-5xl font-bold text-navy mb-4">
+            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold text-navy mb-4">
               Perfectly placed in Rushikonda.
             </h2>
             <p className="text-text-secondary text-lg">
@@ -196,7 +196,7 @@ export default function NearbyAttractions() {
       {/* Map CTA */}
       <div className="container-custom relative mt-8 lg:mt-12">
         <AnimatedSection delay={0.2}>
-          <div className="relative bg-navy rounded-2xl p-8 lg:p-10 overflow-hidden flex flex-col sm:flex-row items-center justify-between gap-6">
+          <div className="relative bg-navy rounded-2xl p-5 sm:p-8 lg:p-10 overflow-hidden flex flex-col sm:flex-row items-center justify-between gap-5">
             <div
               className="absolute inset-0 opacity-[0.04]"
               style={{
@@ -209,7 +209,7 @@ export default function NearbyAttractions() {
               <h3 className="font-heading text-2xl font-bold text-white mb-2">
                 Find Us on the Map
               </h3>
-              <p className="text-white/60 max-w-md text-sm">
+              <p className="text-white/60 max-w-md text-xs sm:text-sm">
                 Located in scenic Rushikonda, just a stone&apos;s throw from the
                 beach and perfectly connected to the city.
               </p>

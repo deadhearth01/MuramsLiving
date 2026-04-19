@@ -6,11 +6,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Phone, ArrowRight } from "lucide-react";
 
 const videos = [
-  "/clicks/IMG_0467.MOV",
-  "/clicks/IMG_0468.MOV",
-  "/clicks/IMG_0469.MOV",
-  "/clicks/IMG_0453.MOV",
-  "/clicks/IMG_0454.MOV"
+  "/clicks/IMG_0467.mp4",
+  "/clicks/IMG_0468.mp4",
+  "/clicks/IMG_0469.mp4",
+  "/clicks/IMG_0453.mp4",
+  "/clicks/IMG_0454.mp4",
 ];
 
 export default function Hero() {
@@ -59,7 +59,7 @@ export default function Hero() {
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1.0, ease: "easeOut", delay: 0.2 }}
-            className="absolute bottom-0 left-0 z-10 w-full px-6 sm:px-10 lg:px-16 pb-20 sm:pb-24"
+            className="absolute bottom-0 left-0 z-10 w-full px-6 sm:px-10 lg:px-16 pb-24 sm:pb-28"
           >
             <div className="max-w-2xl">
               {/* Location label */}
@@ -76,17 +76,17 @@ export default function Hero() {
                 stunning beach views in the heart of Rushikonda.
               </p>
 
-              <div className="flex flex-col sm:flex-row items-start gap-3">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-start gap-3">
                 <a
                   href="tel:+917816055655"
-                  className="flex items-center gap-2 bg-primary hover:bg-primary-dark text-white font-semibold py-3.5 px-7 rounded-xl transition-all duration-300 text-sm shadow-lg shadow-primary/30 hover:shadow-primary/50"
+                  className="flex items-center justify-center gap-2 bg-primary hover:bg-primary-dark text-white font-semibold py-3.5 px-7 rounded-xl transition-all duration-300 text-sm shadow-lg shadow-primary/30"
                 >
                   <Phone size={17} />
                   Call to Book
                 </a>
                 <Link
                   href="/book"
-                  className="flex items-center gap-2 bg-white/15 hover:bg-white/25 border border-white/30 text-white font-semibold py-3.5 px-7 rounded-xl transition-all duration-300 text-sm backdrop-blur-sm"
+                  className="flex items-center justify-center gap-2 bg-white/15 hover:bg-white/25 border border-white/30 text-white font-semibold py-3.5 px-7 rounded-xl transition-all duration-300 text-sm backdrop-blur-sm"
                 >
                   Book Online
                   <ArrowRight size={16} />
@@ -107,7 +107,7 @@ export default function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.8, ease: "easeOut" }}
-            className="absolute bottom-20 sm:bottom-24 right-6 sm:right-10 lg:right-16 z-20 flex items-center gap-3 bg-white/95 backdrop-blur-md px-4 py-3 rounded-2xl shadow-2xl border border-white/50 hover:bg-white transition-all duration-300 cursor-pointer group"
+            className="hidden sm:flex absolute bottom-24 sm:bottom-28 right-6 sm:right-10 lg:right-16 z-20 items-center gap-3 bg-white/95 backdrop-blur-md px-4 py-3 rounded-2xl shadow-2xl border border-white/50 hover:bg-white transition-all duration-300 cursor-pointer group"
           >
             <div className="bg-white rounded-xl p-1.5 flex-shrink-0 shadow-sm">
               <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

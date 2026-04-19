@@ -501,7 +501,7 @@ export default function BookingPage() {
               </div>
               <p className="text-xl font-bold text-navy">Room {selectedGroup.room_group}</p>
               <p className="text-xs text-text-secondary mt-0.5">
-                {selectedGroup.floor_name} &middot; {selectedGroup.capacity}-Sharing
+                {selectedGroup.floor_name} &middot; {selectedGroup.capacity} Beds
               </p>
             </div>
           ) : isPublic && formData.preferredBuilding !== "any" ? (
@@ -555,7 +555,7 @@ export default function BookingPage() {
                   <SummaryRow
                     icon={Users}
                     label="Room Type"
-                    value={`${formData.preferredSharing}-Sharing`}
+                    value={`${formData.preferredSharing} Beds`}
                   />
                 )}
                 {formData.preferredRoomType !== "any" && (
@@ -935,9 +935,9 @@ export default function BookingPage() {
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                           {([
                             { value: "any", label: "Any",  sub: "No preference" },
-                            { value: "2",   label: "2×",   sub: "2-sharing" },
-                            { value: "3",   label: "3×",   sub: "3-sharing" },
-                            { value: "4",   label: "4×",   sub: "4-sharing" },
+                            { value: "2",   label: "2×",   sub: "2 beds" },
+                            { value: "3",   label: "3×",   sub: "3 beds" },
+                            { value: "4",   label: "4×",   sub: "4 beds" },
                           ] as { value: Sharing; label: string; sub: string }[]).map((opt) => (
                             <button
                               key={opt.value} type="button"
@@ -1045,14 +1045,14 @@ export default function BookingPage() {
                           {formData.preferredBuilding === "any"
                             ? "both buildings"
                             : `the ${formData.preferredBuilding === "gold" ? "Gold" : "Silver"} Building`}
-                          {formData.preferredSharing !== "any" ? ` matching ${formData.preferredSharing}-sharing` : ""}.
+                          {formData.preferredSharing !== "any" ? ` matching ${formData.preferredSharing} beds` : ""}.
                         </p>
                       </div>
 
                       <div className="flex flex-wrap gap-2 mb-8">
                         {[
                           formData.preferredBuilding !== "any" && `${formData.preferredBuilding === "gold" ? "Gold" : "Silver"} Building`,
-                          formData.preferredSharing !== "any" && `${formData.preferredSharing}-sharing`,
+                          formData.preferredSharing !== "any" && `${formData.preferredSharing} beds`,
                           formData.checkInDate && `Check-in: ${formatDate(formData.checkInDate)}`,
                         ].filter(Boolean).map((chip) => (
                           <span key={String(chip)} className="px-3 py-1.5 bg-primary/5 border border-primary/20 text-primary text-xs font-semibold rounded-full">
@@ -1245,7 +1245,7 @@ export default function BookingPage() {
                       {formData.preferredSharing !== "any" && (
                         <div className="mb-5 inline-flex items-center gap-2 px-3 py-1.5 bg-primary/5 border border-primary/20 rounded-full text-xs text-primary font-medium">
                           <span className="w-2 h-2 rounded-full bg-primary" />
-                          Showing {formData.preferredSharing}-sharing rooms only
+                          Showing {formData.preferredSharing}-bed rooms only
                           <button onClick={() => setFormData({ ...formData, preferredSharing: "any" })} className="ml-1 text-primary/60 hover:text-primary underline">
                             Clear
                           </button>
@@ -1311,7 +1311,7 @@ export default function BookingPage() {
                             </p>
                             <p className="text-xs text-text-secondary">
                               {availableGroups.filter((g) => g.building === step3Building).length} rooms
-                              {formData.preferredSharing !== "any" ? ` · ${formData.preferredSharing}-sharing` : ""}
+                              {formData.preferredSharing !== "any" ? ` · ${formData.preferredSharing} beds` : ""}
                             </p>
                           </div>
                         </div>
@@ -1346,7 +1346,7 @@ export default function BookingPage() {
                                     <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
                                       sel ? "bg-primary/10 text-primary" : "bg-surface-secondary text-text-secondary"
                                     }`}>
-                                      {g.capacity}-Sharing
+                                      {g.capacity} Beds
                                     </span>
                                   </button>
                                 );
@@ -1374,7 +1374,7 @@ export default function BookingPage() {
                               {selectedGroup.building === "gold" ? "Gold" : "Silver"} Building
                             </p>
                             <p className="text-xs text-text-secondary">
-                              {selectedGroup.floor_name} &middot; {selectedGroup.capacity}-Sharing
+                              {selectedGroup.floor_name} &middot; {selectedGroup.capacity} Beds
                             </p>
                           </div>
                           <CheckCircle2 size={28} className="text-primary flex-shrink-0" />
@@ -1429,7 +1429,7 @@ export default function BookingPage() {
                         <p className="font-bold text-navy text-lg">Room {selectedGroup?.room_group}</p>
                         <p className="text-sm text-text-secondary">
                           {selectedGroup?.building === "gold" ? "Gold" : "Silver"} Building &middot;{" "}
-                          {selectedGroup?.floor_name} &middot; {selectedGroup?.capacity}-Sharing
+                          {selectedGroup?.floor_name} &middot; {selectedGroup?.capacity} Beds
                         </p>
                       </div>
                     </div>
@@ -1452,7 +1452,7 @@ export default function BookingPage() {
                         },
                         {
                           label: "Room Type",
-                          value: formData.preferredSharing === "any" ? "No preference" : `${formData.preferredSharing}-Sharing`,
+                          value: formData.preferredSharing === "any" ? "No preference" : `${formData.preferredSharing} Beds`,
                         },
                       ].map((item) => (
                         <div key={item.label}>

@@ -67,7 +67,7 @@ const attractions = [
     img: "/prime-location/zoo.jpeg",
   },
   {
-    name: "VUDA Stadium",
+    name: "Stadium",
     distance: "20 min drive",
     img: "/prime-location/stadium.jpeg",
   },
@@ -127,7 +127,7 @@ export default function TouristsPageClient() {
             transition={{ duration: 0.7 }}
           >
             <p className="text-primary font-semibold text-sm uppercase tracking-[0.15em] mb-4">
-              For Tourists
+              For Guests
             </p>
             <h1 className="font-heading font-bold text-4xl md:text-5xl lg:text-6xl text-white mb-6 leading-tight">
               Stay by the

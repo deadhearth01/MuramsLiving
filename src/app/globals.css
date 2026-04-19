@@ -734,26 +734,6 @@ img {
    MOBILE COMPONENTS
    ============================================ */
 
-.floating-btn-bar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  z-index: 100;
-  padding: 0.75rem;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-top: 1px solid rgba(26, 46, 90, 0.1);
-  gap: 0.75rem;
-}
-
-@media (min-width: 768px) {
-  .floating-btn-bar {
-    display: none;
-  }
-}
 
 /* Mobile menu backdrop */
 .backdrop-blur-menu {

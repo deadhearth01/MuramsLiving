@@ -8,22 +8,27 @@ export async function POST(request: NextRequest) {
     // Read session from cookie
     const cookieStore = await cookies();
     const session = cookieStore.get("ml_admin_session")?.value;
-    let userId = "unknown";
-    let userName = "Unknown";
-    let userRole = "unknown";
 
-    if (session) {
-      try {
-        const data = JSON.parse(Buffer.from(session, "base64").toString());
-        userId = data.id || "unknown";
-        userName = data.name || "Unknown";
-        userRole = data.role || "unknown";
-      } catch (e) {
-        console.error("[log-activity] Failed to parse session cookie:", e);
-      }
+    if (!session) {
+      return NextResponse.json({ skipped: true });
     }
 
-    console.log("[log-activity] user:", userName, "action:", action, "page:", page);
+    let userId: string;
+    let userName: string;
+    let userRole: string;
+
+    try {
+      const data = JSON.parse(Buffer.from(session, "base64").toString());
+      userId = data.id;
+      userName = data.name;
+      userRole = data.role;
+    } catch {
+      return NextResponse.json({ skipped: true });
+    }
+
+    if (!userId || !userName || userId === "unknown") {
+      return NextResponse.json({ skipped: true });
+    }
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;

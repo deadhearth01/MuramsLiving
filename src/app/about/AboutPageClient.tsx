@@ -34,7 +34,7 @@ const values = [
 
 const stats = [
   { value: "500+", label: "Happy Residents" },
-  { value: "4.9", label: "Google Rating" },
+  { value: "4.6", label: "Google Rating" },
   { value: "5+", label: "Years Serving" },
   { value: "24/7", label: "Support" },
 ];

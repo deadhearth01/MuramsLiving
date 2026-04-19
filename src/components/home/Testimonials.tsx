@@ -225,7 +225,7 @@ export default function Testimonials() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 max-w-3xl mx-auto">
             {[
               { value: "100+", label: "Happy Residents" },
-              { value: "4.9/5", label: "Average Rating" },
+              { value: "4.6/5", label: "Average Rating" },
               { value: "3+", label: "Years Trusted" },
               { value: "95%", label: "Recommend Us" },
             ].map((stat, index) => (

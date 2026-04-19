@@ -8,14 +8,13 @@ import {
   FaFacebookF,
   FaInstagram,
   FaWhatsapp,
-  FaYoutube,
 } from "react-icons/fa";
 
 const quickLinks = [
   { href: "/", label: "Home" },
   { href: "/about", label: "About Us" },
   { href: "/students", label: "Students" },
-  { href: "/tourists", label: "Tourists" },
+  { href: "/tourists", label: "Guests" },
   { href: "/silver", label: "Silver Building" },
   { href: "/amenities", label: "Amenities" },
   { href: "/gallery", label: "Gallery" },
@@ -51,12 +50,6 @@ const socialLinks = [
     icon: FaWhatsapp,
     label: "WhatsApp",
     color: "#25D366",
-  },
-  {
-    href: "https://youtube.com",
-    icon: FaYoutube,
-    label: "YouTube",
-    color: "#FF0000",
   },
 ];
 
@@ -123,7 +116,7 @@ export default function Footer() {
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="flex flex-col sm:flex-row gap-4"
+              className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto"
             >
               <a
                 href="tel:+917816055655"
@@ -154,7 +147,7 @@ export default function Footer() {
       <div className="relative container-custom py-16 lg:py-20">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-8">
           {/* Column 1: Brand */}
-          <div className="lg:col-span-4">
+          <div className="lg:col-span-4 flex flex-col items-center md:items-start">
             <Link href="/" className="inline-block mb-6">
               <Image
                 src="/logo.png"
@@ -164,7 +157,7 @@ export default function Footer() {
                 className="brightness-0 invert"
               />
             </Link>
-            <p className="text-white/60 text-sm leading-relaxed mb-6 max-w-sm">
+            <p className="text-white/60 text-sm leading-relaxed mb-6 max-w-sm text-center md:text-left">
               Experience premium PG & Hostel living in Rushikonda,
               Visakhapatnam. Where comfort meets community, and every day feels
               like home.
@@ -196,7 +189,7 @@ export default function Footer() {
           </div>
 
           {/* Column 2: Quick Links */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 flex flex-col items-center md:items-start">
             <h3 className="font-semibold text-sm uppercase tracking-wider text-white/40 mb-6">
               Quick Links
             </h3>
@@ -238,7 +231,7 @@ export default function Footer() {
           </div>
 
           {/* Column 3: Amenities */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 flex flex-col items-center md:items-start">
             <h3 className="font-semibold text-sm uppercase tracking-wider text-white/40 mb-6">
               Amenities
             </h3>
@@ -253,7 +246,7 @@ export default function Footer() {
           </div>
 
           {/* Column 4: Contact */}
-          <div className="lg:col-span-4">
+          <div className="lg:col-span-4 flex flex-col items-center md:items-start">
             <h3 className="font-semibold text-sm uppercase tracking-wider text-white/40 mb-6">
               Get in Touch
             </h3>
