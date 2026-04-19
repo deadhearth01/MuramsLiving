@@ -86,7 +86,7 @@ const defaultRoomTypes = [
   },
   {
     type: "4-Sharing Room",
-    price: "Starting ₹6,500/mo",
+    price: "Starting ₹8,000/mo",
     sharing: "4",
     highlights: [
       "Budget-friendly option",
@@ -105,7 +105,6 @@ const included = [
   "Daily housekeeping",
   "24/7 hot water",
   "Laundry facility access",
-  "Power backup",
   "CCTV & on-site security",
   "Parking (two-wheeler & four-wheeler)",
 ];

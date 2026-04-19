@@ -95,7 +95,6 @@ const included = [
   "Daily housekeeping",
   "24/7 hot water",
   "24/7 security & CCTV",
-  "Power backup",
   "Easy check-in process",
 ];
 

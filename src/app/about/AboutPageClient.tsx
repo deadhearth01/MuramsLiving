@@ -33,7 +33,7 @@ const values = [
 ];
 
 const stats = [
-  { value: "500+", label: "Happy Residents" },
+  { value: "1000+", label: "Happy Residents" },
   { value: "4.6", label: "Google Rating" },
   { value: "5+", label: "Years Serving" },
   { value: "24/7", label: "Support" },
@@ -85,7 +85,7 @@ export default function AboutPageClient() {
                 />
                 <div className="absolute bottom-5 right-5 bg-primary text-white px-5 py-4 rounded-2xl shadow-lg">
                   <div className="font-heading font-bold text-3xl leading-none">
-                    500+
+                    1000+
                   </div>
                   <div className="text-sm opacity-90 mt-0.5">
                     Happy Residents

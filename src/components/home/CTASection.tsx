@@ -99,7 +99,7 @@ export default function CTASection() {
               </div>
               <div className="flex items-center gap-2">
                 <Clock size={14} className="text-primary/70" />
-                Visits: 9 AM – 8 PM
+                Visits: 8 AM – 10 PM
               </div>
               <div className="flex items-center gap-2">
                 <Phone size={14} className="text-primary/70" />

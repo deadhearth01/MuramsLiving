@@ -270,7 +270,7 @@ export default function Footer() {
               </li>
               <li>
                 <a
-                  href="mailto:contact@muramsliving.com"
+                  href="mailto:info@muramsliving.com"
                   className="group flex items-start gap-4 text-white/70 hover:text-white transition-colors"
                 >
                   <div className="w-10 h-10 rounded-xl bg-white/10 group-hover:bg-primary/20 flex items-center justify-center shrink-0 transition-colors">
@@ -280,7 +280,7 @@ export default function Footer() {
                     <div className="text-sm font-medium text-white/90">
                       Email
                     </div>
-                    <div className="text-sm">contact@muramsliving.com</div>
+                    <div className="text-sm">info@muramsliving.com</div>
                   </div>
                 </a>
               </li>

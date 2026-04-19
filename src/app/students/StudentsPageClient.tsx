@@ -86,7 +86,6 @@ const included = [
   "24/7 hot water",
   "Laundry facility",
   "24/7 security & CCTV",
-  "Power backup",
   "Common recreation area",
 ];
 

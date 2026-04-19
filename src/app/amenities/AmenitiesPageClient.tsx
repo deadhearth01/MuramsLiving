@@ -98,11 +98,7 @@ const amenityCategories = [
         title: "24/7 Hot Water",
         desc: "Uninterrupted hot water supply round the clock so you never have to wait for a warm shower.",
       },
-      {
-        icon: Zap,
-        title: "Power Backup",
-        desc: "Generator backup ensures uninterrupted power supply during outages.",
-      },
+      
     ],
   },
   {

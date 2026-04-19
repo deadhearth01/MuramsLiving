@@ -17,7 +17,7 @@ interface Location {
 const locations: Location[] = [
   {
     title: "Rushikonda Beach",
-    distance: "1 km",
+    distance: "0.5 km",
     time: "5 min walk",
     description:
       "Beautiful golden sandy beach perfect for morning walks and evening relaxation. One of Vizag's most loved beaches, just steps from your door.",
@@ -35,7 +35,7 @@ const locations: Location[] = [
   },
   {
     title: "IT SEZ / Tech Park",
-    distance: "4 km",
+    distance: "2 km",
     time: "10 min drive",
     description:
       "Major IT hub with top technology companies like Wipro, TCS, and Infosys. Short commute for working professionals.",
@@ -44,7 +44,7 @@ const locations: Location[] = [
   },
   {
     title: "Food & Restaurants",
-    distance: "0.8 km",
+    distance: "0.5 km",
     time: "5 min walk",
     description:
       "Various restaurants, cafes, street food stalls, and food courts nearby offering cuisines from all over India.",
@@ -71,7 +71,7 @@ const locations: Location[] = [
   },
   {
     title: "Stadium",
-    distance: "6 km",
+    distance: "2 km",
     time: "12 min drive",
     description:
       "Major sports complex and stadium hosting local and state-level sporting events. Great for sports enthusiasts.",
@@ -80,7 +80,7 @@ const locations: Location[] = [
   },
   {
     title: "Indira Gandhi Zoological Park",
-    distance: "8 km",
+    distance: "4 km",
     time: "15 min drive",
     description:
       "One of the largest zoos in India, home to a wide variety of animals and birds. A great weekend destination.",

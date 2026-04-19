@@ -119,7 +119,6 @@ const studentExtras = [
 ];
 
 const publicExtras = [
-  "Clean linen & towels",
   "Attached or common bathroom",
   "AC (optional upgrade)",
   "Marble flooring",

@@ -40,9 +40,9 @@ const STATIC_ROOMS: Record<string, Record<string, string[]>> = {
     "4th Floor": ["41-1","41-2","42-1","42-2","42-3","43-1","43-2","43-3","43-4","44-1","44-2","44-3","44-4","44-5","44-6"],
   },
   silver: {
-    "Ground Floor": ["GF1-H-1","GF1-H-2","GF1-L-1","GF1-L-2","GF1-L-3","GF1-R-1","GF1-R-2","GF1-R-3","GF2-H-1","GF2-H-2","GF2-L-1","GF2-L-2","GF2-L-3","GF2-R-1","GF2-R-2","GF2-R-3"],
-    "1st Floor":    ["FF1-H-1","FF1-H-2","FF1-L-1","FF1-L-2","FF1-L-3","FF1-R-1","FF1-R-2","FF1-R-3","FF2-H-1","FF2-H-2","FF2-L-1","FF2-L-2","FF2-L-3","FF2-R-1","FF2-R-2","FF2-R-3"],
-    "2nd Floor":    ["SF1-H-1","SF1-H-2","SF1-L-1","SF1-L-2","SF1-L-3","SF1-R-1","SF1-R-2","SF1-R-3","SF2-H-1","SF2-H-2","SF2-L-1","SF2-L-2","SF2-L-3","SF2-R-1","SF2-R-2","SF2-R-3"],
+    "Ground Floor": ["GF1-H1","GF1-H2","GF1-L1","GF1-L2","GF1-L3","GF1-R1","GF1-R2","GF1-R3","GF2-H1","GF2-H2","GF2-L1","GF2-L2","GF2-L3","GF2-R1","GF2-R2","GF2-R3"],
+    "1st Floor":    ["FF1-H1","FF1-H2","FF1-L1","FF1-L2","FF1-L3","FF1-R1","FF1-R2","FF1-R3","FF2-H1","FF2-H2","FF2-L1","FF2-L2","FF2-L3","FF2-R1","FF2-R2","FF2-R3"],
+    "2nd Floor":    ["SF1-H1","SF1-H2","SF1-L1","SF1-L2","SF1-L3","SF1-R1","SF1-R2","SF1-R3","SF2-H1","SF2-H2","SF2-L1","SF2-L2","SF2-L3","SF2-R1","SF2-R2","SF2-R3"],
   },
 };
 
