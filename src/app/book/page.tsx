@@ -116,6 +116,58 @@ function InputField({
 const inputCls =
   "w-full pl-11 pr-4 py-3 border border-surface-tertiary rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm";
 
+// ── Location Slideshow Widget ─────────────────────────────────────────────────
+
+const LOCATION_SLIDES = [
+  { icon: "🏖️", label: "Rushikonda Beach", detail: "1 km · 5 min walk" },
+  { icon: "🎓", label: "Gitam Medical College", detail: "0.5 km · 3 min walk" },
+  { icon: "💻", label: "IT SEZ / Tech Park", detail: "4 km · 10 min drive" },
+  { icon: "🍽️", label: "Restaurants & Cafes", detail: "0.8 km · 5 min walk" },
+  { icon: "🚂", label: "Railway Station", detail: "15 km · 25 min drive" },
+  { icon: "✈️", label: "Visakhapatnam Airport", detail: "22 km · 35 min drive" },
+];
+
+function LocationSlider() {
+  const [idx, setIdx] = useState(0);
+
+  useEffect(() => {
+    const t = setInterval(() => setIdx((p) => (p + 1) % LOCATION_SLIDES.length), 2500);
+    return () => clearInterval(t);
+  }, []);
+
+  const slide = LOCATION_SLIDES[idx];
+
+  return (
+    <div className="mt-4 p-4 bg-primary/5 rounded-2xl border border-primary/10 overflow-hidden">
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={idx}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.3 }}
+          className="flex items-center gap-3"
+        >
+          <span className="text-xl flex-shrink-0">{slide.icon}</span>
+          <div className="min-w-0">
+            <p className="text-xs font-semibold text-navy truncate">{slide.label}</p>
+            <p className="text-xs text-text-secondary">{slide.detail}</p>
+          </div>
+          <div className="ml-auto flex gap-1 flex-shrink-0">
+            {LOCATION_SLIDES.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setIdx(i)}
+                className={`w-1.5 h-1.5 rounded-full transition-all ${i === idx ? "bg-primary w-3" : "bg-primary/25"}`}
+              />
+            ))}
+          </div>
+        </motion.div>
+      </AnimatePresence>
+    </div>
+  );
+}
+
 // ── main page ─────────────────────────────────────────────────────────────────
 
 export default function BookingPage() {
@@ -577,15 +629,8 @@ export default function BookingPage() {
           </div>
         </div>
 
-        {/* Murams note */}
-        <div className="mt-4 p-4 bg-primary/5 rounded-2xl border border-primary/10">
-          <div className="flex items-start gap-2">
-            <MapPin size={14} className="text-primary flex-shrink-0 mt-0.5" />
-            <p className="text-xs text-text-secondary leading-relaxed">
-              Rushikonda, Visakhapatnam — 1 km from the beach
-            </p>
-          </div>
-        </div>
+        {/* Prime location auto-slideshow */}
+        <LocationSlider />
 
         {/* Pricing Card */}
         {pricingData.length > 0 && formData.preferredBuilding !== "any" && (() => {

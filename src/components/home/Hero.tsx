@@ -1,55 +1,80 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Phone, ArrowRight } from "lucide-react";
 
-const videos = [
-  "/clicks/IMG_0467.mp4",
-  "/clicks/IMG_0468.mp4",
-  "/clicks/IMG_0469.mp4",
-  "/clicks/IMG_0453.mp4",
-  "/clicks/IMG_0454.mp4",
+const slides = [
+  { src: "/clicks/gold-building/exterior-front-view-vertical.png", label: "Gold Building" },
+  { src: "/clicks/gold-building/dining-horizontal.png",            label: "Dining Area" },
+  { src: "/clicks/gold-building/2-beds.png",                       label: "2-Bed Room" },
+  { src: "/clicks/gold-building/front-side-view.png",              label: "Building Front" },
+  { src: "/clicks/gold-building/3-bed.png",                        label: "3-Bed Room" },
+  { src: "/clicks/gold-building/dining-horizontal2.png",           label: "Common Dining" },
+  { src: "/clicks/gold-building/outer-view-entrance-gate.png",     label: "Entrance Gate" },
+  { src: "/clicks/gold-building/common-area-steps.png",            label: "Common Area" },
+  { src: "/clicks/gold-building/exterior-side-view-vertical.png",  label: "Side View" },
 ];
+
+const INTERVAL = 5000;
 
 export default function Hero() {
   const [isLoaded, setIsLoaded] = useState(false);
-  const [currentVideo, setCurrentVideo] = useState(0);
+  const [current, setCurrent] = useState(0);
 
   useEffect(() => {
     setIsLoaded(true);
     const timer = setInterval(() => {
-      setCurrentVideo((prev) => (prev + 1) % videos.length);
-    }, 6000);
+      setCurrent((prev) => (prev + 1) % slides.length);
+    }, INTERVAL);
     return () => clearInterval(timer);
   }, []);
 
   return (
     <section className="relative h-screen w-full overflow-hidden bg-navy-dark">
-      {/* Background Video Slideshow */}
-      <div className="absolute inset-0 z-0 bg-navy-dark">
+
+      {/* Photo slideshow */}
+      <div className="absolute inset-0 z-0">
         <AnimatePresence initial={false}>
-          <motion.video
-            key={currentVideo}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+          <motion.div
+            key={current}
+            initial={{ opacity: 0, scale: 1.06 }}
+            animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 1.5, ease: "easeInOut" }}
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="absolute inset-0 w-full h-full object-cover"
+            transition={{ duration: 1.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+            className="absolute inset-0"
           >
-            <source src={videos[currentVideo]} type="video/mp4" />
-          </motion.video>
+            <Image
+              src={slides[current].src}
+              alt={slides[current].label}
+              fill
+              priority={current === 0}
+              className="object-cover"
+              sizes="100vw"
+            />
+          </motion.div>
         </AnimatePresence>
 
         {/* Overlays */}
-        <div className="absolute inset-0 bg-black/40 pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-black/45 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-transparent to-transparent pointer-events-none" />
+      </div>
+
+      {/* Dot + label indicator — bottom-center */}
+      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-3 pointer-events-none">
+        <div className="flex gap-1.5">
+          {slides.map((_, i) => (
+            <motion.div
+              key={i}
+              animate={{ width: i === current ? 24 : 6, opacity: i === current ? 1 : 0.4 }}
+              transition={{ duration: 0.35 }}
+              className="h-1.5 rounded-full bg-white"
+            />
+          ))}
+        </div>
       </div>
 
       {/* Bottom-left content */}
@@ -59,10 +84,9 @@ export default function Hero() {
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1.0, ease: "easeOut", delay: 0.2 }}
-            className="absolute bottom-0 left-0 z-10 w-full px-6 sm:px-10 lg:px-16 pb-24 sm:pb-28"
+            className="absolute bottom-0 left-0 z-10 w-full px-6 sm:px-10 lg:px-16 pb-28 sm:pb-32"
           >
             <div className="max-w-2xl">
-              {/* Location label */}
               <p className="text-white/60 text-sm font-medium uppercase tracking-widest mb-3">
                 Rushikonda, Visakhapatnam
               </p>
@@ -72,7 +96,7 @@ export default function Hero() {
               </h1>
 
               <p className="text-white/75 text-base sm:text-lg leading-relaxed mb-8 max-w-lg">
-                Fully furnished rooms, home-cooked meals, 24/7 security &
+                Fully furnished rooms, home-cooked meals, 24/7 security &amp;
                 stunning beach views in the heart of Rushikonda.
               </p>
 
@@ -97,7 +121,7 @@ export default function Hero() {
         )}
       </AnimatePresence>
 
-      {/* Google Reviews Badge — bottom-right, always visible */}
+      {/* Google Reviews Badge */}
       <AnimatePresence>
         {isLoaded && (
           <motion.a
@@ -107,7 +131,7 @@ export default function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.8, ease: "easeOut" }}
-            className="hidden sm:flex absolute bottom-24 sm:bottom-28 right-6 sm:right-10 lg:right-16 z-20 items-center gap-3 bg-white/95 backdrop-blur-md px-4 py-3 rounded-2xl shadow-2xl border border-white/50 hover:bg-white transition-all duration-300 cursor-pointer group"
+            className="hidden sm:flex absolute bottom-28 sm:bottom-32 right-6 sm:right-10 lg:right-16 z-20 items-center gap-3 bg-white/95 backdrop-blur-md px-4 py-3 rounded-2xl shadow-2xl border border-white/50 hover:bg-white transition-all duration-300 cursor-pointer"
           >
             <div className="bg-white rounded-xl p-1.5 flex-shrink-0 shadow-sm">
               <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -129,26 +153,6 @@ export default function Hero() {
               <p className="text-gray-400 text-[10px] mt-0.5">See all reviews →</p>
             </div>
           </motion.a>
-        )}
-      </AnimatePresence>
-
-      {/* Scroll indicator */}
-      <AnimatePresence>
-        {isLoaded && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1.2 }}
-            className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-1.5 pointer-events-none"
-          >
-            <motion.div
-              animate={{ y: [0, 6, 0] }}
-              transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-              className="w-5 h-8 rounded-full border-2 border-white/30 flex items-start justify-center pt-1.5"
-            >
-              <div className="w-1 h-1.5 rounded-full bg-white/60" />
-            </motion.div>
-          </motion.div>
         )}
       </AnimatePresence>
     </section>

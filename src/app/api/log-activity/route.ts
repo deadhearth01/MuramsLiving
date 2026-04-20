@@ -26,9 +26,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ skipped: true });
     }
 
-    if (!userId || !userName || userId === "unknown") {
+    // Only skip if truly no identity at all
+    if (!userId || userId === "unknown") {
       return NextResponse.json({ skipped: true });
     }
+    // Fallback name/role if missing in session
+    if (!userName) userName = userId;
+    if (!userRole) userRole = "unknown";
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;

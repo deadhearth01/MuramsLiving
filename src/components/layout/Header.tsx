@@ -251,8 +251,21 @@ export default function Header() {
             </nav>
 
             {/* CTA + Hamburger */}
-            <div className="flex items-center gap-4">
-              {/* Desktop CTA */}
+            <div className="flex items-center gap-3">
+              {/* Desktop WhatsApp */}
+              <motion.a
+                href="https://wa.me/917816055655?text=Hi%2C%20I%20am%20interested%20in%20booking%20a%20room%20at%20Murams%20Living."
+                target="_blank"
+                rel="noopener noreferrer"
+                whileHover={{ scale: 1.02, y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                className="hidden lg:flex items-center gap-2 px-5 py-3 bg-[#25D366] text-white text-sm font-semibold rounded-xl shadow-sm hover:bg-[#1db954] transition-colors duration-200"
+              >
+                <FaWhatsapp size={16} />
+                <span>WhatsApp</span>
+              </motion.a>
+
+              {/* Desktop Book Now */}
               <Link href="/book" passHref legacyBehavior>
                 <motion.a
                   whileHover={{ scale: 1.02, y: -2 }}

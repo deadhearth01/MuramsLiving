@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import nodemailer from "nodemailer";
+import { sendEmail } from "@/utils/send-email";
 
 export interface BookingEmailPayload {
   name: string;
@@ -227,68 +227,26 @@ export async function POST(req: NextRequest) {
     const body: BookingEmailPayload = await req.json();
 
     if (!body.email) {
-      return NextResponse.json(
-        { skipped: true, reason: "No email provided" },
-        { status: 200 },
-      );
+      return NextResponse.json({ skipped: true, reason: "No email provided" });
     }
 
-    const host = process.env.SMTP_HOST;
-    const port = parseInt(process.env.SMTP_PORT || "587");
-    const user = process.env.SMTP_USER;
-    const pass = process.env.SMTP_PASS;
     const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL;
-
-    if (!host || !user || !pass) {
-      console.error(
-        "SMTP not configured — missing SMTP_HOST, SMTP_USER, or SMTP_PASS",
-      );
-      return NextResponse.json(
-        { skipped: true, reason: "SMTP not configured" },
-        { status: 503 },
-      );
-    }
-
-    const transporter = nodemailer.createTransport({
-      host,
-      port,
-      secure: port === 465,
-      auth: { user, pass },
-    });
-
-    try {
-      await transporter.verify();
-    } catch (verifyErr) {
-      console.error("SMTP connection/auth verification failed:", verifyErr);
-      return NextResponse.json(
-        { error: "SMTP connection/auth failed" },
-        { status: 502 },
-      );
-    }
-
     const subject = `Booking Request Received — Room ${body.roomGroup}, ${body.building === "gold" ? "Gold" : "Silver"} Building`;
     const html = buildEmailHtml(body);
 
-    // Build recipient list: always include the booker; also CC the owner if configured
     const recipients: string[] = [body.email];
-    if (adminEmail && adminEmail !== body.email) {
-      recipients.push(adminEmail);
-    }
+    if (adminEmail && adminEmail !== body.email) recipients.push(adminEmail);
 
-    await transporter.sendMail({
-      from: `"Murams Living" <${user}>`,
-      to: recipients.join(", "),
-      replyTo: user,
-      subject,
-      html,
-    });
+    const result = await sendEmail({ to: recipients, subject, html });
+
+    if (!result.success) {
+      console.error("Booking email failed:", result.error);
+      return NextResponse.json({ error: result.error }, { status: 502 });
+    }
 
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("Booking confirmation email error:", err);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { createClient } from "@/utils/supabase/client";
+import { logActivity } from "@/utils/activity-logger";
 import { Briefcase, Plus, Pencil, Trash2, X, Phone, IndianRupee } from "lucide-react";
 
 interface Worker {
@@ -50,16 +51,18 @@ export default function WorkersPage() {
     } else {
       await supabase.from("workers").update({ ...form, updated_at: new Date().toISOString() }).eq("id", form.id!);
     }
+    logActivity(modal === "add" ? "create" : "update", "workers", `${modal === "add" ? "Added" : "Updated"} worker: ${form.name}`);
     setModal(null);
     setForm(emptyWorker);
     await fetchWorkers();
     setSaving(false);
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: string, name: string) => {
     if (!confirm("Delete this record?")) return;
     const supabase = createClient();
     await supabase.from("workers").delete().eq("id", id);
+    logActivity("delete", "workers", `Deleted worker: ${name}`);
     await fetchWorkers();
   };
 
@@ -102,7 +105,7 @@ export default function WorkersPage() {
           <button onClick={() => { setForm(worker); setModal("edit"); }} className="text-primary hover:text-primary-dark transition-colors">
             <Pencil size={15} />
           </button>
-          <button onClick={() => handleDelete(worker.id)} className="text-gray-400 hover:text-red-500 transition-colors">
+          <button onClick={() => handleDelete(worker.id, worker.name)} className="text-gray-400 hover:text-red-500 transition-colors">
             <Trash2 size={15} />
           </button>
         </div>

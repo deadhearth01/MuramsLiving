@@ -7,26 +7,28 @@ import Image from "next/image";
 import { ArrowRight, Images } from "lucide-react";
 
 const featured = [
-  { src: "/clicks/077b49fa-bcf4-4a4b-b13d-c97087b50380.JPG", label: "Beach View", tag: "Views", wide: true },
-  { src: "/clicks/IMG_0384.jpg", label: "Premium Room", tag: "Rooms", wide: false },
-  { src: "/clicks/IMG_0388.jpg", label: "Room Interior", tag: "Rooms", wide: false },
-  { src: "/clicks/IMG_0390.jpg", label: "Living Space", tag: "Rooms", wide: false },
-  { src: "/clicks/IMG_0392.jpg", label: "Cozy Corner", tag: "Rooms", wide: false },
+  { src: "/clicks/gold-building/exterior-front-view-vertical.png", label: "Gold Building", tag: "Exterior", wide: true },
+  { src: "/clicks/gold-building/dining-horizontal.png", label: "Dining Area", tag: "Common Areas", wide: false },
+  { src: "/clicks/gold-building/2-beds.png", label: "2-Bed Room", tag: "Rooms", wide: false },
+  { src: "/clicks/gold-building/3-bed.png", label: "3-Bed Room", tag: "Rooms", wide: false },
+  { src: "/clicks/gold-building/washroom-vertical.png", label: "Washroom", tag: "Facilities", wide: false },
 ];
 
 const strip = [
-  "/clicks/IMG_0383.jpg",
-  "/clicks/IMG_0385.jpg",
-  "/clicks/IMG_0386.jpg",
-  "/clicks/IMG_0387.jpg",
-  "/clicks/IMG_0389.jpg",
-  "/clicks/IMG_0391.jpg",
-  "/clicks/IMG_0393.jpg",
-  "/clicks/IMG_0394.jpg",
-  "/clicks/IMG_0395.jpg",
+  "/clicks/gold-building/front-side-view.png",
+  "/clicks/gold-building/outer-view-entrance-gate.png",
+  "/clicks/gold-building/outside-image.png",
+  "/clicks/gold-building/dining-horizontal2.png",
+  "/clicks/gold-building/common-area-steps.png",
+  "/clicks/gold-building/solar-water-heater.png",
+  "/clicks/silver-building/outside-view.png",
+  "/clicks/silver-building/3-sharing.png",
+  "/clicks/silver-building/washroom.png",
+  "/clicks/IMG_0384.jpg",
+  "/clicks/IMG_0388.jpg",
+  "/clicks/IMG_0390.jpg",
+  "/clicks/IMG_0392.jpg",
   "/clicks/IMG_0396.jpg",
-  "/clicks/IMG_0397.jpg",
-  "/clicks/IMG_0398.jpg",
 ];
 
 function GalleryCard({

@@ -283,22 +283,8 @@ export default function StudentsPage() {
     return (
       <div className="p-6 lg:p-8 space-y-3">
         {[...Array(5)].map((_, i) => <div key={i} className="bg-white rounded-xl p-4 animate-pulse h-16" />)}
-      {/* Toast Notification */}
-      {toast && (
-        <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-[100] px-5 py-3 rounded-xl shadow-lg flex items-center gap-2 transition-all ${
-          toast.type === "success" ? "bg-green-600 text-white" : "bg-red-600 text-white"
-        }`}>
-          {toast.type === "success" ? (
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-          ) : (
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-          )}
-          <span className="text-sm font-medium">{toast.message}</span>
-          <button onClick={() => setToast(null)} className="ml-2 text-white/70 hover:text-white"><X size={14} /></button>
-        </div>
-      )}
-    </div>
-  );
+      </div>
+    );
 }
 
   return (
@@ -620,6 +606,21 @@ export default function StudentsPage() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toast && (
+        <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-[200] px-5 py-3 rounded-xl shadow-lg flex items-center gap-2 ${
+          toast.type === "success" ? "bg-green-600 text-white" : "bg-red-600 text-white"
+        }`}>
+          {toast.type === "success" ? (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          ) : (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+          )}
+          <span className="text-sm font-medium">{toast.message}</span>
+          <button onClick={() => setToast(null)} className="ml-2 text-white/70 hover:text-white"><X size={14} /></button>
         </div>
       )}
     </div>
