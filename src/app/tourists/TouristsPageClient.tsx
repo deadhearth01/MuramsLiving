@@ -229,7 +229,7 @@ export default function TouristsPageClient() {
             >
               <div className="relative rounded-3xl overflow-hidden aspect-square">
                 <Image
-                  src="/clicks/IMG_0384.jpg"
+                  src="/clicks/gold-building/dining-horizontal.png"
                   alt="Room at Murams Living"
                   fill
                   className="object-cover"

@@ -279,7 +279,7 @@ export default function StudentsPageClient() {
             >
               <div className="relative rounded-3xl overflow-hidden aspect-[4/5]">
                 <Image
-                  src="/clicks/IMG_0383.jpg"
+                  src="/clicks/gold-building/2-beds.png"
                   alt="Student room at Murams Living"
                   fill
                   className="object-cover"

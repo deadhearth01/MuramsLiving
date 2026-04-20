@@ -375,10 +375,10 @@ export default function SilverPageClient() {
             >
               <div className="grid grid-cols-2 gap-4">
                 {[
-                  "/clicks/IMG_0390.jpg",
-                  "/clicks/IMG_0391.jpg",
-                  "/clicks/IMG_0392.jpg",
-                  "/clicks/IMG_0393.jpg",
+                  "/clicks/silver-building/outside-view.png",
+                  "/clicks/silver-building/3-sharing.png",
+                  "/clicks/silver-building/washroom.png",
+                  "/clicks/gold-building/dining-horizontal.png",
                 ].map((src, i) => (
                   <div
                     key={src}
