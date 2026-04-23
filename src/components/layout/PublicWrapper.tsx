@@ -60,6 +60,7 @@ function MobileFloatingBar() {
 export default function PublicWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isAdminOrAuth = pathname.startsWith("/admin") || pathname.startsWith("/login");
+  const isBookingPage = pathname.startsWith("/book");
 
   if (isAdminOrAuth) return <>{children}</>;
 
@@ -69,9 +70,13 @@ export default function PublicWrapper({ children }: { children: React.ReactNode 
       {children}
       <StickySidebar />
       <Footer />
-      {/* Bottom spacer so footer isn't hidden behind floating bar on mobile */}
-      <div className="h-20 md:hidden" aria-hidden="true" />
-      <MobileFloatingBar />
+      {!isBookingPage && (
+        <>
+          {/* Bottom spacer so footer isn't hidden behind floating bar on mobile */}
+          <div className="h-20 md:hidden" aria-hidden="true" />
+          <MobileFloatingBar />
+        </>
+      )}
     </>
   );
 }
