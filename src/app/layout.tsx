@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import PublicWrapper from "@/components/layout/PublicWrapper";
+import DevToolsBlocker from "@/components/layout/DevToolsBlocker";
+import SitePreloader from "@/components/layout/SitePreloader";
 
 const playfair = localFont({
   src: [
@@ -84,8 +86,8 @@ export const metadata: Metadata = {
     ],
   },
   icons: {
-    icon: "/logo.png",
-    apple: "/logo.png",
+    icon: "/favicon.png",
+    apple: "/favicon.png",
   },
 };
 
@@ -97,6 +99,8 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${playfair.variable} ${bricolage.variable}`}>
       <body className="font-body antialiased">
+        <DevToolsBlocker />
+        <SitePreloader />
         <PublicWrapper>
           <main>{children}</main>
         </PublicWrapper>

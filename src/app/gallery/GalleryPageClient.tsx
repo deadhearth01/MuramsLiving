@@ -1,53 +1,76 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ZoomIn, Phone } from "lucide-react";
 import { AnimatedSection } from "@/components/ui/AnimatedSection";
 
+type Building = "gold" | "silver";
+
 const categories = ["All", "Rooms", "Common Areas", "Views", "Exterior"];
 
 const galleryItems = [
-  { id: 1,  src: "/clicks/077b49fa-bcf4-4a4b-b13d-c97087b50380.JPG", title: "Beach View", category: "Views" },
-  { id: 2,  src: "/clicks/4350f887-b2b6-4241-8c50-027772939d25.JPG", title: "Premium Room", category: "Rooms" },
-  { id: 3,  src: "/clicks/IMG_0383.jpg", title: "Building Interior", category: "Common Areas" },
-  { id: 4,  src: "/clicks/IMG_0384.jpg", title: "Room View", category: "Rooms" },
-  { id: 5,  src: "/clicks/IMG_0385.jpg", title: "Common Area", category: "Common Areas" },
-  { id: 6,  src: "/clicks/IMG_0386.jpg", title: "Amenities", category: "Common Areas" },
-  { id: 7,  src: "/clicks/IMG_0387.jpg", title: "Room Interior", category: "Rooms" },
-  { id: 8,  src: "/clicks/IMG_0388.jpg", title: "Facilities", category: "Common Areas" },
-  { id: 9,  src: "/clicks/IMG_0389.jpg", title: "Corridor", category: "Common Areas" },
-  { id: 10, src: "/clicks/IMG_0390.jpg", title: "Terrace Area", category: "Views" },
-  { id: 11, src: "/clicks/IMG_0391.jpg", title: "Building View", category: "Exterior" },
-  { id: 12, src: "/clicks/IMG_0392.jpg", title: "Room Setup", category: "Rooms" },
-  { id: 13, src: "/clicks/IMG_0393.jpg", title: "Storage Space", category: "Rooms" },
-  { id: 14, src: "/clicks/IMG_0394.jpg", title: "Common Lounge", category: "Common Areas" },
-  { id: 15, src: "/clicks/IMG_0395.jpg", title: "Building Entrance", category: "Exterior" },
-  { id: 16, src: "/clicks/IMG_0396.jpg", title: "Room Amenities", category: "Rooms" },
-  { id: 17, src: "/clicks/IMG_0397.jpg", title: "Shared Space", category: "Common Areas" },
-  { id: 18, src: "/clicks/IMG_0398.jpg", title: "Evening View", category: "Views" },
-  { id: 19, src: "/clicks/IMG_0399.jpg", title: "Building Exterior", category: "Exterior" },
-  { id: 20, src: "/clicks/IMG_0400.jpg", title: "Bedroom", category: "Rooms" },
-  { id: 21, src: "/clicks/IMG_0401.jpg", title: "Room Furnishings", category: "Rooms" },
-  { id: 22, src: "/clicks/IMG_0402.jpg", title: "Hallway", category: "Common Areas" },
-  { id: 23, src: "/clicks/IMG_0403.jpg", title: "Outside View", category: "Views" },
-  { id: 24, src: "/clicks/IMG_0404.jpg", title: "Parking Area", category: "Exterior" },
-  { id: 25, src: "/clicks/IMG_0405.jpg", title: "Study Corner", category: "Rooms" },
-  { id: 26, src: "/clicks/IMG_0406.jpg", title: "Lounge Area", category: "Common Areas" },
-  { id: 27, src: "/clicks/IMG_0407.jpg", title: "Surroundings", category: "Views" },
-  { id: 28, src: "/clicks/IMG_0408.jpg", title: "Room Detail", category: "Rooms" },
-  { id: 29, src: "/clicks/IMG_0409.jpg", title: "Utilities", category: "Common Areas" },
-  { id: 30, src: "/clicks/IMG_0410.jpg", title: "Building Side", category: "Exterior" },
+  // ── Gold Building ──────────────────────────────────────────────────────────
+  { id:  1, src: "/clicks/gold-building/exterior-front-view-vertical.png", title: "Front View",          category: "Exterior",      building: "gold" as Building },
+  { id:  2, src: "/clicks/gold-building/exterior-side-view-vertical.png",  title: "Side Exterior",       category: "Exterior",      building: "gold" as Building },
+  { id:  3, src: "/clicks/gold-building/front-side-view.png",              title: "Building Frontage",   category: "Exterior",      building: "gold" as Building },
+  { id:  4, src: "/clicks/gold-building/outer-view-entrance-gate.png",     title: "Entrance Gate",       category: "Exterior",      building: "gold" as Building },
+  { id:  5, src: "/clicks/gold-building/outside-image.png",                title: "Outside View",        category: "Exterior",      building: "gold" as Building },
+  { id:  6, src: "/clicks/gold-building/dining-horizontal.png",            title: "Dining Area",         category: "Common Areas",  building: "gold" as Building },
+  { id:  7, src: "/clicks/gold-building/dining-horizontal2.png",           title: "Dining Hall",         category: "Common Areas",  building: "gold" as Building },
+  { id:  8, src: "/clicks/gold-building/common-area-steps.png",            title: "Common Steps",        category: "Common Areas",  building: "gold" as Building },
+  { id:  9, src: "/clicks/gold-building/solar-water-heater.png",           title: "Solar Water Heater",  category: "Common Areas",  building: "gold" as Building },
+  { id: 10, src: "/clicks/gold-building/washroom.png",                     title: "Washroom",            category: "Common Areas",  building: "gold" as Building },
+  { id: 11, src: "/clicks/gold-building/washroom-vertical.png",            title: "Bathroom View",       category: "Common Areas",  building: "gold" as Building },
+  { id: 12, src: "/clicks/gold-building/2-beds.png",                       title: "2-Bed Room",          category: "Rooms",         building: "gold" as Building },
+  { id: 13, src: "/clicks/gold-building/3-bed.png",                        title: "3-Bed Room",          category: "Rooms",         building: "gold" as Building },
+  { id: 14, src: "/clicks/077b49fa-bcf4-4a4b-b13d-c97087b50380.JPG",      title: "Beach View",          category: "Views",         building: "gold" as Building },
+  { id: 15, src: "/clicks/IMG_0384.jpg",                                   title: "Room Interior",       category: "Rooms",         building: "gold" as Building },
+  { id: 16, src: "/clicks/IMG_0388.jpg",                                   title: "Room Setup",          category: "Rooms",         building: "gold" as Building },
+  { id: 17, src: "/clicks/IMG_0390.jpg",                                   title: "Terrace View",        category: "Views",         building: "gold" as Building },
+  { id: 18, src: "/clicks/IMG_0392.jpg",                                   title: "Cozy Room",           category: "Rooms",         building: "gold" as Building },
+  { id: 19, src: "/clicks/IMG_0396.jpg",                                   title: "Room Amenities",      category: "Rooms",         building: "gold" as Building },
+  { id: 20, src: "/clicks/IMG_0400.jpg",                                   title: "Furnished Room",      category: "Rooms",         building: "gold" as Building },
+  { id: 21, src: "/clicks/IMG_0406.jpg",                                   title: "Common Lounge",       category: "Common Areas",  building: "gold" as Building },
+  // ── Silver Building ────────────────────────────────────────────────────────
+  { id: 22, src: "/clicks/silver-building/outside-view.png",               title: "Silver Building",     category: "Exterior",      building: "silver" as Building },
+  { id: 23, src: "/clicks/silver-building/3-sharing.png",                  title: "3-Sharing Room",      category: "Rooms",         building: "silver" as Building },
+  { id: 24, src: "/clicks/silver-building/washroom.png",                   title: "Washroom",            category: "Common Areas",  building: "silver" as Building },
+  { id: 25, src: "/clicks/IMG_0398.jpg",                                   title: "Evening View",        category: "Views",         building: "silver" as Building },
+  { id: 26, src: "/clicks/IMG_0401.jpg",                                   title: "Room Furnishings",    category: "Rooms",         building: "silver" as Building },
+  { id: 27, src: "/clicks/IMG_0402.jpg",                                   title: "Hallway",             category: "Common Areas",  building: "silver" as Building },
+  { id: 28, src: "/clicks/IMG_0403.jpg",                                   title: "Surroundings",        category: "Views",         building: "silver" as Building },
+  { id: 29, src: "/clicks/IMG_0405.jpg",                                   title: "Study Corner",        category: "Rooms",         building: "silver" as Building },
+  { id: 30, src: "/clicks/IMG_0408.jpg",                                   title: "Room Detail",         category: "Rooms",         building: "silver" as Building },
+  { id: 31, src: "/clicks/IMG_0410.jpg",                                   title: "Building Side",       category: "Exterior",      building: "silver" as Building },
+];
+
+const buildingTabs: { key: Building; label: string; icon: string; subtitle: string }[] = [
+  { key: "gold",   label: "Gold Building",   icon: "🥇", subtitle: "Original Building" },
+  { key: "silver", label: "Silver Building",  icon: "🥈", subtitle: "New Building with Parking" },
 ];
 
 export default function GalleryPageClient() {
+  const [activeBuilding, setActiveBuilding] = useState<Building>("gold");
   const [activeCategory, setActiveCategory] = useState("All");
   const [selectedItem, setSelectedItem] = useState<(typeof galleryItems)[0] | null>(null);
 
-  const filteredItems =
-    activeCategory === "All"
-      ? galleryItems
-      : galleryItems.filter((item) => item.category === activeCategory);
+  const goldCount = galleryItems.filter((i) => i.building === "gold").length;
+  const silverCount = galleryItems.filter((i) => i.building === "silver").length;
+  const countMap: Record<Building, number> = { gold: goldCount, silver: silverCount };
+
+  const filteredItems = useMemo(() => {
+    let items = galleryItems.filter((item) => item.building === activeBuilding);
+    if (activeCategory !== "All") {
+      items = items.filter((item) => item.category === activeCategory);
+    }
+    return items;
+  }, [activeBuilding, activeCategory]);
+
+  const handleBuildingChange = (b: Building) => {
+    setActiveBuilding(b);
+    setActiveCategory("All");
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -76,14 +99,58 @@ export default function GalleryPageClient() {
       {/* Gallery */}
       <section className="py-16 lg:py-20 bg-white">
         <div className="container-custom">
+          {/* Building Tabs */}
+          <AnimatedSection className="mb-8">
+            <div className="inline-flex rounded-2xl bg-surface-secondary p-1.5 gap-1.5">
+              {buildingTabs.map((tab) => (
+                <button
+                  key={tab.key}
+                  onClick={() => handleBuildingChange(tab.key)}
+                  className="relative px-6 py-3.5 rounded-xl text-sm font-semibold transition-colors duration-300 flex items-center gap-2.5 min-w-[180px] justify-center"
+                >
+                  {activeBuilding === tab.key && (
+                    <motion.div
+                      layoutId="building-pill"
+                      className={`absolute inset-0 rounded-xl shadow-lg ${
+                        tab.key === "gold"
+                          ? "bg-gradient-to-br from-amber-500 to-amber-600"
+                          : "bg-gradient-to-br from-slate-500 to-slate-600"
+                      }`}
+                      transition={{ type: "spring", stiffness: 380, damping: 32 }}
+                    />
+                  )}
+                  <span className="relative z-10 flex items-center gap-2.5">
+                    <span className="text-lg leading-none">{tab.icon}</span>
+                    <span className={activeBuilding === tab.key ? "text-white" : "text-text-secondary"}>
+                      {tab.label}
+                    </span>
+                    <span
+                      className={`inline-flex items-center justify-center text-xs font-bold rounded-full min-w-[22px] h-[22px] px-1.5 ${
+                        activeBuilding === tab.key
+                          ? "bg-white/25 text-white"
+                          : "bg-surface-tertiary text-text-secondary"
+                      }`}
+                    >
+                      {countMap[tab.key]}
+                    </span>
+                  </span>
+                </button>
+              ))}
+            </div>
+            <p className="mt-3 text-xs text-text-secondary">
+              {activeBuilding === "gold"
+                ? "Showing photos from the Gold Building — our original, established property."
+                : "Showing photos from the Silver Building — our newer property with dedicated parking."}
+            </p>
+          </AnimatedSection>
+
           {/* Category Filter */}
           <AnimatedSection className="flex flex-wrap gap-2 mb-10">
             {categories.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
-                className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
-                  activeCategory === cat
+                className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 ${activeCategory === cat
                     ? "bg-navy text-white shadow-sm"
                     : "bg-surface-secondary text-text-secondary hover:bg-surface-tertiary"
                 }`}

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import nodemailer from "nodemailer";
+import { sendEmail } from "@/utils/send-email";
 
 interface BookingPayload {
   name: string;
@@ -20,22 +20,10 @@ export async function POST(request: NextRequest) {
   try {
     const body: BookingPayload = await request.json();
 
-    const host = process.env.SMTP_HOST;
-    const port = parseInt(process.env.SMTP_PORT || "587");
-    const user = process.env.SMTP_USER;
-    const pass = process.env.SMTP_PASS;
     const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL;
-
-    if (!host || !user || !pass || !adminEmail) {
-      return NextResponse.json({ skipped: true, reason: "SMTP not configured" });
+    if (!adminEmail) {
+      return NextResponse.json({ skipped: true, reason: "No admin email configured" });
     }
-
-    const transporter = nodemailer.createTransport({
-      host,
-      port,
-      secure: port === 465,
-      auth: { user, pass },
-    });
 
     const isPublic = body.bookingType === "public";
     const buildingLabel = body.building === "gold" ? "Gold" : body.building === "silver" ? "Silver" : body.building;
@@ -105,12 +93,16 @@ export async function POST(request: NextRequest) {
 </body>
 </html>`;
 
-    await transporter.sendMail({
-      from: `"Murams Living" <${user}>`,
+    const result = await sendEmail({
       to: adminEmail,
       subject: `New ${isPublic ? "Guest" : "Student"} Booking — ${body.name} (${buildingLabel})`,
       html,
     });
+
+    if (!result.success) {
+      console.error("Admin notification email failed:", result.error);
+      return NextResponse.json({ error: result.error }, { status: 502 });
+    }
 
     return NextResponse.json({ success: true });
   } catch (err) {

@@ -8,18 +8,31 @@ export async function POST(request: NextRequest) {
     // Read session from cookie
     const cookieStore = await cookies();
     const session = cookieStore.get("ml_admin_session")?.value;
-    let userId = "unknown";
-    let userName = "Unknown";
-    let userRole = "unknown";
 
-    if (session) {
-      try {
-        const data = JSON.parse(Buffer.from(session, "base64").toString());
-        userId = data.id || "unknown";
-        userName = data.name || "Unknown";
-        userRole = data.role || "unknown";
-      } catch { /* fallback defaults */ }
+    if (!session) {
+      return NextResponse.json({ skipped: true });
     }
+
+    let userId: string;
+    let userName: string;
+    let userRole: string;
+
+    try {
+      const data = JSON.parse(Buffer.from(session, "base64").toString());
+      userId = data.id;
+      userName = data.name;
+      userRole = data.role;
+    } catch {
+      return NextResponse.json({ skipped: true });
+    }
+
+    // Only skip if truly no identity at all
+    if (!userId || userId === "unknown") {
+      return NextResponse.json({ skipped: true });
+    }
+    // Fallback name/role if missing in session
+    if (!userName) userName = userId;
+    if (!userRole) userRole = "unknown";
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;

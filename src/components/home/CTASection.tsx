@@ -1,15 +1,26 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Phone, MessageCircle, ArrowRight, MapPin, Clock, Building2, Shield, Utensils, Wifi, Waves } from "lucide-react";
+import {
+  Phone,
+  MessageCircle,
+  ArrowRight,
+  MapPin,
+  Clock,
+  Building2,
+  Shield,
+  Utensils,
+  Wifi,
+  Waves,
+} from "lucide-react";
 import { AnimatedSection } from "@/components/ui/AnimatedSection";
 
 const trustItems = [
-  { icon: Building2,  label: "New Building"     },
-  { icon: Shield,     label: "24/7 Security"     },
-  { icon: Utensils,   label: "Home-Cooked Food"  },
-  { icon: Wifi,       label: "High-Speed WiFi"   },
-  { icon: Waves,      label: "Near the Beach"    },
+  { icon: Building2, label: "New Building" },
+  { icon: Shield, label: "24/7 Security" },
+  { icon: Utensils, label: "Home-Cooked Food" },
+  { icon: Wifi, label: "Free Wifi" },
+  { icon: Waves, label: "Near the Beach" },
 ];
 
 export default function CTASection() {
@@ -27,7 +38,6 @@ export default function CTASection() {
 
       <div className="container-custom relative">
         <div className="max-w-3xl mx-auto text-center">
-
           {/* Live availability indicator */}
           <AnimatedSection>
             <div className="inline-flex items-center gap-2 mb-8 text-white/50 text-sm">
@@ -39,7 +49,8 @@ export default function CTASection() {
           {/* Heading */}
           <AnimatedSection delay={0.1}>
             <h2 className="font-heading text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
-              Ready to call<br />
+              Ready to call
+              <br />
               <span className="text-primary">Murams Living</span> home?
             </h2>
           </AnimatedSection>
@@ -88,7 +99,7 @@ export default function CTASection() {
               </div>
               <div className="flex items-center gap-2">
                 <Clock size={14} className="text-primary/70" />
-                Visits: 9 AM – 8 PM
+                Visits: 8 AM – 10 PM
               </div>
               <div className="flex items-center gap-2">
                 <Phone size={14} className="text-primary/70" />
@@ -102,7 +113,10 @@ export default function CTASection() {
             <div className="border-t border-white/10 pt-10">
               <div className="flex flex-wrap items-center justify-center gap-7 lg:gap-12">
                 {trustItems.map(({ icon: Icon, label }) => (
-                  <div key={label} className="flex items-center gap-2 text-white/35">
+                  <div
+                    key={label}
+                    className="flex items-center gap-2 text-white/35"
+                  >
                     <Icon size={15} className="text-white/30" />
                     <span className="text-sm font-medium">{label}</span>
                   </div>

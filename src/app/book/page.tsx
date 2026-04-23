@@ -1,18 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Phone, User, Mail, Calendar, Clock, CheckCircle2,
   ChevronRight, ChevronLeft, Building2, Search, DoorOpen,
-  MapPin, Users, Minus, Plus,
+  MapPin, Users, Minus, Plus, Wind,
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 
 type BookingMode = "student" | "public";
 
 type Step = 1 | 2 | 3 | 4;
-type Sharing = "any" | "2" | "3" | "4" | "6";
+type Sharing = "any" | "2" | "3" | "4";
 
 interface RawRoom {
   id: string;
@@ -40,6 +40,18 @@ interface FormData {
   checkInTime: string;
   preferredBuilding: "gold" | "silver" | "any";
   preferredSharing: Sharing;
+  preferredRoomType: "ac" | "non-ac" | "any";
+}
+
+// ── validation helpers ─────────────────────────────────────────────────────────
+function isValidIndianPhone(phone: string): boolean {
+  const cleaned = phone.replace(/\s+/g, "").replace(/-/g, "");
+  // Accept: 10 digits, +91XXXXXXXXXX, 0XXXXXXXXXX
+  return /^(\+91|91|0)?[6-9]\d{9}$/.test(cleaned);
+}
+
+function isValidEmail(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
 const STUDENT_STEPS = [
@@ -104,6 +116,58 @@ function InputField({
 const inputCls =
   "w-full pl-11 pr-4 py-3 border border-surface-tertiary rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm";
 
+// ── Location Slideshow Widget ─────────────────────────────────────────────────
+
+const LOCATION_SLIDES = [
+  { icon: "🏖️", label: "Rushikonda Beach", detail: "1 km · 5 min walk" },
+  { icon: "🎓", label: "Gitam Medical College", detail: "0.5 km · 3 min walk" },
+  { icon: "💻", label: "IT SEZ / Tech Park", detail: "4 km · 10 min drive" },
+  { icon: "🍽️", label: "Restaurants & Cafes", detail: "0.8 km · 5 min walk" },
+  { icon: "🚂", label: "Railway Station", detail: "15 km · 25 min drive" },
+  { icon: "✈️", label: "Visakhapatnam Airport", detail: "22 km · 35 min drive" },
+];
+
+function LocationSlider() {
+  const [idx, setIdx] = useState(0);
+
+  useEffect(() => {
+    const t = setInterval(() => setIdx((p) => (p + 1) % LOCATION_SLIDES.length), 2500);
+    return () => clearInterval(t);
+  }, []);
+
+  const slide = LOCATION_SLIDES[idx];
+
+  return (
+    <div className="mt-4 p-4 bg-primary/5 rounded-2xl border border-primary/10 overflow-hidden">
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={idx}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.3 }}
+          className="flex items-center gap-3"
+        >
+          <span className="text-xl flex-shrink-0">{slide.icon}</span>
+          <div className="min-w-0">
+            <p className="text-xs font-semibold text-navy truncate">{slide.label}</p>
+            <p className="text-xs text-text-secondary">{slide.detail}</p>
+          </div>
+          <div className="ml-auto flex gap-1 flex-shrink-0">
+            {LOCATION_SLIDES.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setIdx(i)}
+                className={`w-1.5 h-1.5 rounded-full transition-all ${i === idx ? "bg-primary w-3" : "bg-primary/25"}`}
+              />
+            ))}
+          </div>
+        </motion.div>
+      </AnimatePresence>
+    </div>
+  );
+}
+
 // ── main page ─────────────────────────────────────────────────────────────────
 
 export default function BookingPage() {
@@ -114,7 +178,10 @@ export default function BookingPage() {
     name: "", phone: "", email: "",
     checkInDate: "", checkInTime: "",
     preferredBuilding: "any", preferredSharing: "any",
+    preferredRoomType: "any",
   });
+  const [step1Error, setStep1Error] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<{ phone?: string; email?: string }>({});
   const [adults, setAdults]     = useState(1);
   const [children, setChildren] = useState(0);
   const [availableGroups, setAvailableGroups] = useState<RoomGroup[]>([]);
@@ -124,17 +191,36 @@ export default function BookingPage() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [bookingId, setBookingId] = useState("");
   const [error,    setError]    = useState("");
+  const [pricingData, setPricingData] = useState<{ item_name: string; amount: number; building: string; category: string; price_type: string }[]>([]);
+
+  const stepContainerRef = useRef<HTMLDivElement | null>(null);
+  const isFirstStepRender = useRef(true);
+
+  useEffect(() => {
+    if (isFirstStepRender.current) {
+      isFirstStepRender.current = false;
+      return;
+    }
+    const el = stepContainerRef.current;
+    if (!el) return;
+    const top = el.getBoundingClientRect().top + window.scrollY - 16;
+    window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+  }, [step, step3Building]);
 
   const STEPS = bookingMode === "student" ? STUDENT_STEPS : PUBLIC_STEPS;
   const isPublic = bookingMode === "public";
 
-  // Fetch booking mode from site_settings
+  // Fetch booking mode and pricing from site_settings
   useEffect(() => {
     (async () => {
       try {
         const supabase = createClient();
-        const { data } = await supabase.from("site_settings").select("value").eq("key", "booking_preference").single();
-        if (data?.value) setBookingMode(data.value as BookingMode);
+        const [{ data: settingsData }, { data: priceData }] = await Promise.all([
+          supabase.from("site_settings").select("value").eq("key", "booking_preference").single(),
+          supabase.from("pricing_config").select("item_name, amount, building, category, price_type").eq("is_visible", true).order("display_order"),
+        ]);
+        if (settingsData?.value) setBookingMode(settingsData.value as BookingMode);
+        if (priceData) setPricingData(priceData);
       } catch { /* default student */ }
       setModeLoaded(true);
     })();
@@ -220,11 +306,19 @@ export default function BookingPage() {
         booking_type: bookingMode,
         adults: isPublic ? adults : 1,
         children: isPublic ? children : 0,
-        notes: isPublic
-          ? `${adults} adult${adults !== 1 ? "s" : ""}${children > 0 ? `, ${children} child${children !== 1 ? "ren" : ""}` : ""}`
-          : formData.preferredSharing !== "any"
-          ? `Prefers ${formData.preferredSharing}-sharing room`
-          : null,
+        notes: (() => {
+          const parts: string[] = [];
+          if (isPublic) {
+            parts.push(`${adults} adult${adults !== 1 ? "s" : ""}${children > 0 ? `, ${children} child${children !== 1 ? "ren" : ""}` : ""}`);
+          } else if (formData.preferredSharing !== "any") {
+            parts.push(`Prefers ${formData.preferredSharing}-sharing room`);
+          }
+          if (formData.preferredRoomType !== "any") {
+            parts.push(`Room type: ${formData.preferredRoomType === "ac" ? "AC" : "Non-AC"}`);
+          }
+          return parts.length ? parts.join(". ") : null;
+        })(),
+        preferred_room_type: formData.preferredRoomType !== "any" ? formData.preferredRoomType : null,
         status: "pending",
       });
 
@@ -283,6 +377,29 @@ export default function BookingPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleStep1Continue = () => {
+    setStep1Error("");
+    if (!formData.name.trim()) { setStep1Error("Please enter your full name."); return; }
+    if (!formData.phone.trim()) { setStep1Error("Phone number is required."); return; }
+    if (!isValidIndianPhone(formData.phone)) {
+      setStep1Error("Please enter a valid 10-digit Indian mobile number (e.g. 9876543210 or +91 9876543210).");
+      return;
+    }
+    if (formData.email && !isValidEmail(formData.email)) {
+      setStep1Error("Please enter a valid email address (e.g. name@example.com).");
+      return;
+    }
+    if (!formData.checkInDate) {
+      setStep1Error("Please select a preferred check-in date.");
+      return;
+    }
+    if (isPublic && adults < 1) {
+      setStep1Error("Please add at least 1 adult guest.");
+      return;
+    }
+    setStep(2);
   };
 
   const groupByFloor = (groups: RoomGroup[]) => {
@@ -450,7 +567,7 @@ export default function BookingPage() {
               </div>
               <p className="text-xl font-bold text-navy">Room {selectedGroup.room_group}</p>
               <p className="text-xs text-text-secondary mt-0.5">
-                {selectedGroup.floor_name} &middot; {selectedGroup.capacity}-Sharing
+                {selectedGroup.floor_name} &middot; {selectedGroup.capacity} Beds
               </p>
             </div>
           ) : isPublic && formData.preferredBuilding !== "any" ? (
@@ -504,7 +621,14 @@ export default function BookingPage() {
                   <SummaryRow
                     icon={Users}
                     label="Room Type"
-                    value={`${formData.preferredSharing}-Sharing`}
+                    value={`${formData.preferredSharing} Beds`}
+                  />
+                )}
+                {formData.preferredRoomType !== "any" && (
+                  <SummaryRow
+                    icon={Wind}
+                    label="AC Preference"
+                    value={formData.preferredRoomType === "ac" ? "AC Room" : "Non-AC Room"}
                   />
                 )}
                 {isPublic && (adults > 0 || children > 0) && (
@@ -519,15 +643,80 @@ export default function BookingPage() {
           </div>
         </div>
 
-        {/* Murams note */}
-        <div className="mt-4 p-4 bg-primary/5 rounded-2xl border border-primary/10">
-          <div className="flex items-start gap-2">
-            <MapPin size={14} className="text-primary flex-shrink-0 mt-0.5" />
-            <p className="text-xs text-text-secondary leading-relaxed">
-              Rushikonda, Visakhapatnam — 1 km from the beach
-            </p>
-          </div>
-        </div>
+        {/* Prime location auto-slideshow */}
+        <LocationSlider />
+
+        {/* Pricing Card */}
+        {pricingData.length > 0 && formData.preferredBuilding !== "any" && (() => {
+          const category = isPublic ? "public" : "student";
+          const building = formData.preferredBuilding;
+          const relevantPrices = pricingData.filter((p) => p.building === building && p.category === category);
+          if (relevantPrices.length === 0) return null;
+
+          if (isPublic) {
+            // Dynamic per-person calculation
+            const perAdult = relevantPrices.find((p) => p.price_type === "per_adult");
+            const perChild = relevantPrices.find((p) => p.price_type === "per_child");
+            const extras = relevantPrices.filter((p) => p.price_type === "item" || !p.price_type);
+            const adultRate = perAdult?.amount || 0;
+            const childRate = perChild?.amount || 0;
+            const extrasTotal = extras.reduce((s, p) => s + (p.amount || 0), 0);
+            const nightlyTotal = (adults * adultRate) + (children * childRate) + extrasTotal;
+
+            return (
+              <div className="mt-4 bg-white rounded-2xl border border-surface-tertiary overflow-hidden shadow-sm">
+                <div className={`px-4 py-3 border-b ${building === "gold" ? "bg-yellow-50 border-yellow-100" : "bg-slate-50 border-slate-100"}`}>
+                  <p className="text-xs font-bold text-text-secondary uppercase tracking-wide">
+                    Estimated Price / Night
+                  </p>
+                </div>
+                <div className="p-4 space-y-1.5">
+                  {perAdult && (
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-text-secondary">{adults} adult{adults !== 1 ? "s" : ""} × ₹{adultRate.toLocaleString("en-IN")}</span>
+                      <span className="font-bold text-navy">₹{(adults * adultRate).toLocaleString("en-IN")}</span>
+                    </div>
+                  )}
+                  {perChild && children > 0 && (
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-text-secondary">{children} child{children !== 1 ? "ren" : ""} × ₹{childRate.toLocaleString("en-IN")}</span>
+                      <span className="font-bold text-navy">₹{(children * childRate).toLocaleString("en-IN")}</span>
+                    </div>
+                  )}
+                  {extras.map((p) => (
+                    <div key={`${p.building}-${p.item_name}`} className="flex items-center justify-between text-xs">
+                      <span className="text-text-secondary">{p.item_name}</span>
+                      <span className="font-bold text-navy">₹{p.amount.toLocaleString("en-IN")}</span>
+                    </div>
+                  ))}
+                  <div className="border-t border-surface-tertiary pt-2 mt-2 flex items-center justify-between">
+                    <span className="text-xs font-semibold text-text-secondary">Total / night</span>
+                    <span className="font-bold text-primary text-base">₹{nightlyTotal.toLocaleString("en-IN")}</span>
+                  </div>
+                </div>
+              </div>
+            );
+          }
+
+          // Student: flat list
+          return (
+            <div className="mt-4 bg-white rounded-2xl border border-surface-tertiary overflow-hidden shadow-sm">
+              <div className={`px-4 py-3 border-b ${building === "gold" ? "bg-yellow-50 border-yellow-100" : "bg-slate-50 border-slate-100"}`}>
+                <p className="text-xs font-bold text-text-secondary uppercase tracking-wide">
+                  {building === "gold" ? "Gold" : "Silver"} Building Pricing
+                </p>
+              </div>
+              <div className="p-4 space-y-2">
+                {relevantPrices.map((p) => (
+                  <div key={`${p.building}-${p.item_name}`} className="flex items-center justify-between text-sm">
+                    <span className="text-text-secondary text-xs">{p.item_name}</span>
+                    <span className="font-bold text-navy text-xs">₹{p.amount.toLocaleString("en-IN")}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
       </div>
     );
   };
@@ -592,7 +781,7 @@ export default function BookingPage() {
       </div>
 
       {/* ── 3-column layout ─────────────────────────────────────── */}
-      <div className="container-custom py-8 lg:py-12">
+      <div ref={stepContainerRef} className="container-custom py-8 lg:py-12 scroll-mt-4">
         <div className="lg:grid lg:grid-cols-[220px,1fr,280px] lg:gap-8 xl:gap-10">
 
           {/* LEFT: Step sidebar (desktop only) */}
@@ -627,25 +816,46 @@ export default function BookingPage() {
                           className={inputCls} placeholder="Your full name"
                         />
                       </InputField>
-                      <InputField icon={Phone} label="Phone Number" required>
-                        <input
-                          type="tel" name="phone" required
-                          value={formData.phone} onChange={handleChange}
-                          className={inputCls} placeholder="10-digit mobile number"
-                        />
-                      </InputField>
+                      <div>
+                        <InputField icon={Phone} label="Phone Number" required>
+                          <input
+                            type="tel" name="phone" required
+                            value={formData.phone}
+                            onChange={(e) => { handleChange(e); if (fieldErrors.phone) setFieldErrors((p) => ({ ...p, phone: undefined })); }}
+                            onBlur={(e) => {
+                              const v = e.target.value.trim();
+                              if (!v) setFieldErrors((p) => ({ ...p, phone: "Phone number is required." }));
+                              else if (!isValidIndianPhone(v)) setFieldErrors((p) => ({ ...p, phone: "Enter a valid 10-digit Indian mobile number." }));
+                              else setFieldErrors((p) => ({ ...p, phone: undefined }));
+                            }}
+                            className={`${inputCls} ${fieldErrors.phone ? "border-red-400 focus:ring-red-200 focus:border-red-400" : ""}`}
+                            placeholder="10-digit mobile number"
+                          />
+                        </InputField>
+                        {fieldErrors.phone && <p className="text-red-500 text-xs mt-1 pl-1">{fieldErrors.phone}</p>}
+                      </div>
                     </div>
 
-                    <InputField icon={Mail} label="Email Address">
-                      <input
-                        type="email" name="email"
-                        value={formData.email} onChange={handleChange}
-                        className={inputCls} placeholder="Optional — for booking confirmation email"
-                      />
-                    </InputField>
+                    <div>
+                      <InputField icon={Mail} label="Email Address">
+                        <input
+                          type="email" name="email"
+                          value={formData.email}
+                          onChange={(e) => { handleChange(e); if (fieldErrors.email) setFieldErrors((p) => ({ ...p, email: undefined })); }}
+                          onBlur={(e) => {
+                            const v = e.target.value.trim();
+                            if (v && !isValidEmail(v)) setFieldErrors((p) => ({ ...p, email: "Enter a valid email address (e.g. name@example.com)." }));
+                            else setFieldErrors((p) => ({ ...p, email: undefined }));
+                          }}
+                          className={`${inputCls} ${fieldErrors.email ? "border-red-400 focus:ring-red-200 focus:border-red-400" : ""}`}
+                          placeholder="Optional — for booking confirmation email"
+                        />
+                      </InputField>
+                      {fieldErrors.email && <p className="text-red-500 text-xs mt-1 pl-1">{fieldErrors.email}</p>}
+                    </div>
 
                     <div className="grid sm:grid-cols-2 gap-5">
-                      <InputField icon={Calendar} label="Preferred Check-in Date">
+                      <InputField icon={Calendar} label="Preferred Check-in Date" required>
                         <input
                           type="date" name="checkInDate"
                           value={formData.checkInDate} onChange={handleChange}
@@ -690,10 +900,42 @@ export default function BookingPage() {
                       </div>
                     </div>
 
+                    {/* AC / Non-AC preference (shown for all booking modes) */}
+                    <div>
+                      <label className="block text-sm font-medium text-navy mb-3">
+                        Preferred Room Type <span className="text-text-muted text-xs font-normal">(optional)</span>
+                      </label>
+                      <div className="grid grid-cols-3 gap-3">
+                        {[
+                          { value: "any" as const,    label: "Any",      sub: "No preference",     icon: "🏠" },
+                          { value: "ac" as const,     label: "AC Room",  sub: "Air conditioned",   icon: "❄️" },
+                          { value: "non-ac" as const, label: "Non-AC",   sub: "Fan room",          icon: "🌀" },
+                        ].map((opt) => (
+                          <button
+                            key={opt.value} type="button"
+                            onClick={() => setFormData({ ...formData, preferredRoomType: opt.value })}
+                            className={`flex flex-col items-center gap-2 py-4 px-3 rounded-xl border-2 transition-all text-center ${
+                              formData.preferredRoomType === opt.value
+                                ? "border-primary bg-primary/5 text-primary"
+                                : "border-surface-tertiary text-text-secondary hover:border-primary/30 hover:bg-surface-primary"
+                            }`}
+                          >
+                            <span className="text-lg leading-none">{opt.icon}</span>
+                            <div>
+                              <p className="text-xs font-bold">{opt.label}</p>
+                              <p className="text-[10px] opacity-60 mt-0.5">{opt.sub}</p>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
                     {/* Student: Sharing preference / Public: Guest count */}
                     {isPublic ? (
                       <div>
-                        <label className="block text-sm font-medium text-navy mb-3">Number of Guests</label>
+                        <label className="block text-sm font-medium text-navy mb-3">
+                          Number of Guests <span className="text-primary">*</span>
+                        </label>
                         <div className="space-y-3">
                           <div className="flex items-center justify-between p-4 rounded-xl border-2 border-surface-tertiary">
                             <div>
@@ -749,13 +991,12 @@ export default function BookingPage() {
                       <div>
                         <label className="block text-sm font-medium text-navy mb-1">Preferred Room Type</label>
                         <p className="text-xs text-text-secondary mb-3">How many people in a room?</p>
-                        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                           {([
                             { value: "any", label: "Any",  sub: "No preference" },
-                            { value: "2",   label: "2×",   sub: "2-sharing" },
-                            { value: "3",   label: "3×",   sub: "3-sharing" },
-                            { value: "4",   label: "4×",   sub: "4-sharing" },
-                            { value: "6",   label: "6×",   sub: "6-sharing" },
+                            { value: "2",   label: "2×",   sub: "2 beds" },
+                            { value: "3",   label: "3×",   sub: "3 beds" },
+                            { value: "4",   label: "4×",   sub: "4 beds" },
                           ] as { value: Sharing; label: string; sub: string }[]).map((opt) => (
                             <button
                               key={opt.value} type="button"
@@ -775,11 +1016,16 @@ export default function BookingPage() {
                     )}
                   </div>
 
-                  <div className="mt-8 pt-6 border-t border-surface-tertiary">
+                  {step1Error && (
+                    <div className="px-4 py-3 bg-red-50 border border-red-100 rounded-xl text-red-600 text-sm">
+                      {step1Error}
+                    </div>
+                  )}
+
+                  <div className="pt-2">
                     <button
-                      onClick={() => setStep(2)}
-                      disabled={!formData.name || !formData.phone}
-                      className="w-full flex items-center justify-center gap-2 py-4 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-primary/25 text-sm"
+                      onClick={handleStep1Continue}
+                      className="w-full flex items-center justify-center gap-2 py-4 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-all shadow-lg shadow-primary/25 text-sm"
                     >
                       {isPublic ? "Choose Building" : "Continue to Availability"}
                       <ChevronRight size={18} />
@@ -858,14 +1104,14 @@ export default function BookingPage() {
                           {formData.preferredBuilding === "any"
                             ? "both buildings"
                             : `the ${formData.preferredBuilding === "gold" ? "Gold" : "Silver"} Building`}
-                          {formData.preferredSharing !== "any" ? ` matching ${formData.preferredSharing}-sharing` : ""}.
+                          {formData.preferredSharing !== "any" ? ` matching ${formData.preferredSharing} beds` : ""}.
                         </p>
                       </div>
 
                       <div className="flex flex-wrap gap-2 mb-8">
                         {[
                           formData.preferredBuilding !== "any" && `${formData.preferredBuilding === "gold" ? "Gold" : "Silver"} Building`,
-                          formData.preferredSharing !== "any" && `${formData.preferredSharing}-sharing`,
+                          formData.preferredSharing !== "any" && `${formData.preferredSharing} beds`,
                           formData.checkInDate && `Check-in: ${formatDate(formData.checkInDate)}`,
                         ].filter(Boolean).map((chip) => (
                           <span key={String(chip)} className="px-3 py-1.5 bg-primary/5 border border-primary/20 text-primary text-xs font-semibold rounded-full">
@@ -1058,7 +1304,7 @@ export default function BookingPage() {
                       {formData.preferredSharing !== "any" && (
                         <div className="mb-5 inline-flex items-center gap-2 px-3 py-1.5 bg-primary/5 border border-primary/20 rounded-full text-xs text-primary font-medium">
                           <span className="w-2 h-2 rounded-full bg-primary" />
-                          Showing {formData.preferredSharing}-sharing rooms only
+                          Showing {formData.preferredSharing}-bed rooms only
                           <button onClick={() => setFormData({ ...formData, preferredSharing: "any" })} className="ml-1 text-primary/60 hover:text-primary underline">
                             Clear
                           </button>
@@ -1124,7 +1370,7 @@ export default function BookingPage() {
                             </p>
                             <p className="text-xs text-text-secondary">
                               {availableGroups.filter((g) => g.building === step3Building).length} rooms
-                              {formData.preferredSharing !== "any" ? ` · ${formData.preferredSharing}-sharing` : ""}
+                              {formData.preferredSharing !== "any" ? ` · ${formData.preferredSharing} beds` : ""}
                             </p>
                           </div>
                         </div>
@@ -1159,7 +1405,7 @@ export default function BookingPage() {
                                     <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
                                       sel ? "bg-primary/10 text-primary" : "bg-surface-secondary text-text-secondary"
                                     }`}>
-                                      {g.capacity}-Sharing
+                                      {g.capacity} Beds
                                     </span>
                                   </button>
                                 );
@@ -1187,7 +1433,7 @@ export default function BookingPage() {
                               {selectedGroup.building === "gold" ? "Gold" : "Silver"} Building
                             </p>
                             <p className="text-xs text-text-secondary">
-                              {selectedGroup.floor_name} &middot; {selectedGroup.capacity}-Sharing
+                              {selectedGroup.floor_name} &middot; {selectedGroup.capacity} Beds
                             </p>
                           </div>
                           <CheckCircle2 size={28} className="text-primary flex-shrink-0" />
@@ -1242,7 +1488,7 @@ export default function BookingPage() {
                         <p className="font-bold text-navy text-lg">Room {selectedGroup?.room_group}</p>
                         <p className="text-sm text-text-secondary">
                           {selectedGroup?.building === "gold" ? "Gold" : "Silver"} Building &middot;{" "}
-                          {selectedGroup?.floor_name} &middot; {selectedGroup?.capacity}-Sharing
+                          {selectedGroup?.floor_name} &middot; {selectedGroup?.capacity} Beds
                         </p>
                       </div>
                     </div>
@@ -1265,7 +1511,7 @@ export default function BookingPage() {
                         },
                         {
                           label: "Room Type",
-                          value: formData.preferredSharing === "any" ? "No preference" : `${formData.preferredSharing}-Sharing`,
+                          value: formData.preferredSharing === "any" ? "No preference" : `${formData.preferredSharing} Beds`,
                         },
                       ].map((item) => (
                         <div key={item.label}>

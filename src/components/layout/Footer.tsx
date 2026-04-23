@@ -3,17 +3,19 @@
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { Phone, Mail, MapPin, ArrowUpRight, ArrowRight } from "lucide-react";
+import { Phone, Mail, MapPin, ArrowUpRight, ArrowRight, Sparkles } from "lucide-react";
 import {
   FaFacebookF,
   FaInstagram,
   FaWhatsapp,
-  FaYoutube,
 } from "react-icons/fa";
 
 const quickLinks = [
   { href: "/", label: "Home" },
   { href: "/about", label: "About Us" },
+  { href: "/students", label: "Students" },
+  { href: "/tourists", label: "Guests" },
+  { href: "/silver", label: "Silver Building" },
   { href: "/amenities", label: "Amenities" },
   { href: "/gallery", label: "Gallery" },
   { href: "/contact", label: "Contact" },
@@ -21,7 +23,7 @@ const quickLinks = [
 
 const amenitiesLinks = [
   "AC Rooms",
-  "High-Speed WiFi",
+  "Free Wifi",
   "Home-Cooked Meals",
   "24/7 Hot Water",
   "24/7 Security",
@@ -31,10 +33,24 @@ const amenitiesLinks = [
 ];
 
 const socialLinks = [
-  { href: "https://facebook.com", icon: FaFacebookF, label: "Facebook", color: "#1877F2" },
-  { href: "https://instagram.com", icon: FaInstagram, label: "Instagram", color: "#E4405F" },
-  { href: "https://wa.me/917816055655", icon: FaWhatsapp, label: "WhatsApp", color: "#25D366" },
-  { href: "https://youtube.com", icon: FaYoutube, label: "YouTube", color: "#FF0000" },
+  {
+    href: "https://facebook.com",
+    icon: FaFacebookF,
+    label: "Facebook",
+    color: "#1877F2",
+  },
+  {
+    href: "https://instagram.com",
+    icon: FaInstagram,
+    label: "Instagram",
+    color: "#E4405F",
+  },
+  {
+    href: "https://wa.me/917816055655",
+    icon: FaWhatsapp,
+    label: "WhatsApp",
+    color: "#25D366",
+  },
 ];
 
 export default function Footer() {
@@ -42,6 +58,28 @@ export default function Footer() {
 
   return (
     <footer className="relative bg-navy-dark text-white overflow-hidden">
+      {/* Shimmer keyframe animation for Silver Building link */}
+      <style dangerouslySetInnerHTML={{ __html: String.raw`
+        @keyframes silverShimmer {
+          0% { background-position: -200% center; }
+          100% { background-position: 200% center; }
+        }
+        .silver-shimmer-text {
+          background: linear-gradient(
+            90deg,
+            #94a3b8 0%,
+            #94a3b8 35%,
+            #ffffff 50%,
+            #94a3b8 65%,
+            #94a3b8 100%
+          );
+          background-size: 200% auto;
+          -webkit-background-clip: text;
+          background-clip: text;
+          -webkit-text-fill-color: transparent;
+          animation: silverShimmer 3s linear infinite;
+        }
+      ` }} />
       {/* Background decorations */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[100px]" />
@@ -58,9 +96,10 @@ export default function Footer() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6 }}
-                className="font-heading text-3xl lg:text-4xl font-bold mb-3"
+                className="font-heading text-3xl lg:text-4xl font-bold text-white mb-3"
               >
-                Ready to make <span className="text-primary">Murams</span> your home?
+                Ready to make <span className="text-primary">Murams</span> your
+                home?
               </motion.h2>
               <motion.p
                 initial={{ opacity: 0, y: 20 }}
@@ -77,7 +116,7 @@ export default function Footer() {
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="flex flex-col sm:flex-row gap-4"
+              className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto"
             >
               <a
                 href="tel:+917816055655"
@@ -85,7 +124,10 @@ export default function Footer() {
               >
                 <Phone size={18} />
                 <span>Call Us Now</span>
-                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                <ArrowRight
+                  size={18}
+                  className="group-hover:translate-x-1 transition-transform"
+                />
               </a>
               <a
                 href="https://wa.me/917816055655"
@@ -105,7 +147,7 @@ export default function Footer() {
       <div className="relative container-custom py-16 lg:py-20">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-8">
           {/* Column 1: Brand */}
-          <div className="lg:col-span-4">
+          <div className="lg:col-span-4 flex flex-col items-center md:items-start">
             <Link href="/" className="inline-block mb-6">
               <Image
                 src="/logo.png"
@@ -115,11 +157,12 @@ export default function Footer() {
                 className="brightness-0 invert"
               />
             </Link>
-            <p className="text-white/60 text-sm leading-relaxed mb-6 max-w-sm">
-              Experience premium PG & Hostel living in Rushikonda, Visakhapatnam. 
-              Where comfort meets community, and every day feels like home.
+            <p className="text-white/60 text-sm leading-relaxed mb-6 max-w-sm text-center md:text-left">
+              Experience premium PG & Hostel living in Rushikonda,
+              Visakhapatnam. Where comfort meets community, and every day feels
+              like home.
             </p>
-            
+
             {/* Social Links */}
             <div className="flex items-center gap-3">
               {socialLinks.map((social) => (
@@ -132,10 +175,12 @@ export default function Footer() {
                   whileHover={{ scale: 1.1, y: -2 }}
                   whileTap={{ scale: 0.95 }}
                   className="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all duration-300 group"
-                  style={{ '--hover-color': social.color } as React.CSSProperties}
+                  style={
+                    { "--hover-color": social.color } as React.CSSProperties
+                  }
                 >
-                  <social.icon 
-                    size={16} 
+                  <social.icon
+                    size={16}
                     className="text-white/70 group-hover:text-white transition-colors"
                   />
                 </motion.a>
@@ -144,27 +189,49 @@ export default function Footer() {
           </div>
 
           {/* Column 2: Quick Links */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 flex flex-col items-center md:items-start">
             <h3 className="font-semibold text-sm uppercase tracking-wider text-white/40 mb-6">
               Quick Links
             </h3>
             <ul className="space-y-3">
-              {quickLinks.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="group flex items-center gap-2 text-white/70 hover:text-primary text-sm transition-all duration-300"
-                  >
-                    <span className="w-1 h-1 rounded-full bg-primary/50 group-hover:bg-primary group-hover:scale-150 transition-all duration-300" />
-                    <span>{link.label}</span>
-                  </Link>
-                </li>
-              ))}
+              {quickLinks.map((link) => {
+                const isSilver = link.href === "/silver";
+                return (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      className={`group flex items-center gap-2 text-sm transition-all duration-300 ${
+                        isSilver
+                          ? "hover:text-white"
+                          : "text-white/70 hover:text-primary"
+                      }`}
+                    >
+                      <span
+                        className={`w-1 h-1 rounded-full transition-all duration-300 ${
+                          isSilver
+                            ? "bg-slate-400 group-hover:bg-white group-hover:scale-150"
+                            : "bg-primary/50 group-hover:bg-primary group-hover:scale-150"
+                        }`}
+                      />
+                      {isSilver ? (
+                        <span className="flex items-center gap-1.5 font-bold">
+                          <span className="silver-shimmer-text">
+                            {link.label}
+                          </span>
+                          <Sparkles size={12} className="text-slate-400 shrink-0" />
+                        </span>
+                      ) : (
+                        <span>{link.label}</span>
+                      )}
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </div>
 
           {/* Column 3: Amenities */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 flex flex-col items-center md:items-start">
             <h3 className="font-semibold text-sm uppercase tracking-wider text-white/40 mb-6">
               Amenities
             </h3>
@@ -179,7 +246,7 @@ export default function Footer() {
           </div>
 
           {/* Column 4: Contact */}
-          <div className="lg:col-span-4">
+          <div className="lg:col-span-4 flex flex-col items-center md:items-start">
             <h3 className="font-semibold text-sm uppercase tracking-wider text-white/40 mb-6">
               Get in Touch
             </h3>
@@ -193,7 +260,9 @@ export default function Footer() {
                     <Phone size={16} className="text-primary" />
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-white/90">Phone</div>
+                    <div className="text-sm font-medium text-white/90">
+                      Phone
+                    </div>
                     <div className="text-sm">+91 7816055655</div>
                     <div className="text-sm">+91 7842222284</div>
                   </div>
@@ -201,15 +270,17 @@ export default function Footer() {
               </li>
               <li>
                 <a
-                  href="mailto:contact@muramsliving.com"
+                  href="mailto:info@muramsliving.com"
                   className="group flex items-start gap-4 text-white/70 hover:text-white transition-colors"
                 >
                   <div className="w-10 h-10 rounded-xl bg-white/10 group-hover:bg-primary/20 flex items-center justify-center shrink-0 transition-colors">
                     <Mail size={16} className="text-primary" />
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-white/90">Email</div>
-                    <div className="text-sm">contact@muramsliving.com</div>
+                    <div className="text-sm font-medium text-white/90">
+                      Email
+                    </div>
+                    <div className="text-sm">info@muramsliving.com</div>
                   </div>
                 </a>
               </li>
@@ -219,10 +290,13 @@ export default function Footer() {
                     <MapPin size={16} className="text-primary" />
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-white/90">Address</div>
+                    <div className="text-sm font-medium text-white/90">
+                      Address
+                    </div>
                     <div className="text-sm">
-                      Murams Living, Rushikonda,<br />
-                      Visakhapatnam, AP - 530045
+                      Opp. Kangaroo Kids, Chinna Bazaar,
+                      <br />
+                      Rushikonda, Visakhapatnam, AP - 530045
                     </div>
                   </div>
                 </div>
@@ -231,7 +305,7 @@ export default function Footer() {
 
             {/* Map Link */}
             <a
-              href="https://maps.google.com/?q=Rushikonda,Visakhapatnam"
+              href="https://maps.app.goo.gl/sb63eA3F1TU4m9NJA"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 mt-6 text-sm text-primary hover:text-primary-light transition-colors"
@@ -249,21 +323,26 @@ export default function Footer() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-white/40">
             <p>© {currentYear} Murams Living. All rights reserved.</p>
             <div className="flex items-center gap-6">
-              <Link 
-                href="/privacy" 
-                className="hover:text-white transition-colors"
-              >
-                Privacy Policy
-              </Link>
-              <Link 
-                href="/terms" 
-                className="hover:text-white transition-colors"
-              >
-                Terms of Service
-              </Link>
+              <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
+              <Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Crafted by */}
+      <div className="bg-black/30 border-t border-white/5 py-3 text-center">
+        <p className="text-xs text-white/25">
+          Crafted with <span className="text-red-400/60">♥</span> by{" "}
+          <a
+            href="https://theavni.studio"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-white/40 hover:text-white transition-colors font-medium"
+          >
+            AVNI Studio
+          </a>
+        </p>
       </div>
     </footer>
   );

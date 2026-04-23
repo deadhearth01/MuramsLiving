@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, ReactNode } from 'react';
+import { useRef, ReactNode, useState, useEffect } from 'react';
 import { motion, useInView, Variants } from 'framer-motion';
 
 type RevealType = 'words' | 'chars' | 'lines';
@@ -222,55 +222,45 @@ export function Counter({
   decimals = 0,
 }: CounterProps) {
   const ref = useRef<HTMLSpanElement>(null);
-  const countRef = useRef<HTMLSpanElement>(null);
-  const isInView = useInView(ref, { once: true, amount: 0.5 });
+  const isInView = useInView(ref, { once: true, amount: 0.3 });
+  const [displayed, setDisplayed] = useState(from);
+
+  useEffect(() => {
+    if (!isInView) return;
+
+    let rafId: number;
+    let startTimestamp: number | null = null;
+    const totalMs = duration * 1000;
+    const delayMs = delay * 1000;
+
+    const step = (timestamp: number) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const elapsed = timestamp - startTimestamp - delayMs;
+
+      if (elapsed < 0) {
+        rafId = requestAnimationFrame(step);
+        return;
+      }
+
+      const progress = Math.min(elapsed / totalMs, 1);
+      // Ease-out cubic
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplayed(from + (to - from) * eased);
+
+      if (progress < 1) {
+        rafId = requestAnimationFrame(step);
+      } else {
+        setDisplayed(to);
+      }
+    };
+
+    rafId = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(rafId);
+  }, [isInView, from, to, duration, delay]);
 
   return (
     <span ref={ref} className={className}>
-      {prefix}
-      {isInView ? (
-        <motion.span
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3, delay }}
-        >
-          <motion.span
-            ref={countRef}
-            initial={{ opacity: 1 }}
-            animate={{ opacity: 1 }}
-            transition={{
-              duration,
-              delay,
-              ease: [0.16, 1, 0.3, 1],
-            }}
-            onUpdate={() => {
-              // Animate the number value using a custom counter
-              const startTime = Date.now();
-              const animate = () => {
-                const elapsed = Date.now() - startTime;
-                const progress = Math.min(elapsed / (duration * 1000), 1);
-                const easeProgress = progress; // Could add easing here
-                const current = from + (to - from) * easeProgress;
-                
-                if (countRef.current) {
-                  countRef.current.textContent = current.toFixed(decimals);
-                }
-                
-                if (progress < 1) {
-                  requestAnimationFrame(animate);
-                }
-              };
-              
-              setTimeout(() => animate(), delay * 1000);
-            }}
-          >
-            {from.toFixed(decimals)}
-          </motion.span>
-        </motion.span>
-      ) : (
-        from.toFixed(decimals)
-      )}
-      {suffix}
+      {prefix}{displayed.toFixed(decimals)}{suffix}
     </span>
   );
 }

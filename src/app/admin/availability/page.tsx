@@ -26,7 +26,6 @@ const statusConfig: Record<Status, { label: string; dot: string; bg: string; bor
   maintenance: { label: "Maintenance", dot: "bg-gray-400",   bg: "bg-gray-300",   border: "border-gray-200",  ring: "ring-gray-300" },
 };
 
-// Distinct accent per floor (cycles if > 6 floors)
 const FLOOR_ACCENTS = [
   { bar: "border-l-blue-400",   header: "bg-blue-50",   badge: "bg-blue-100 text-blue-700",   sudo: "bg-blue-600 hover:bg-blue-700" },
   { bar: "border-l-purple-400", header: "bg-purple-50", badge: "bg-purple-100 text-purple-700", sudo: "bg-purple-600 hover:bg-purple-700" },
@@ -36,30 +35,55 @@ const FLOOR_ACCENTS = [
   { bar: "border-l-indigo-400", header: "bg-indigo-50", badge: "bg-indigo-100 text-indigo-700", sudo: "bg-indigo-600 hover:bg-indigo-700" },
 ];
 
-const emptyRoom: { room_no: string; building: "gold" | "silver"; floor_name: string; floor_order: number; room_group: string; status: Status; id?: string } = {
-  room_no: "", building: "gold", floor_name: "", floor_order: 0, room_group: "", status: "available",
+interface RoomForm {
+  building: "gold" | "silver";
+  floor_name: string;
+  floor_order: number;
+  room_group: string;
+  beds: number;
+  status: Status;
+}
+
+const emptyForm: RoomForm = {
+  building: "gold", floor_name: "", floor_order: 0, room_group: "", beds: 2, status: "available",
 };
+
+type Section = "hall" | "left" | "right" | "other";
+
+const getBlockInfo = (roomGroup: string): { block: string; section: Section } => {
+  const parts = roomGroup.trim().toUpperCase().split("-");
+  const block = parts[0] || roomGroup;
+  const suffix = parts[1] || "";
+  if (suffix === "H") return { block, section: "hall" };
+  if (suffix === "L") return { block, section: "left" };
+  if (suffix === "R") return { block, section: "right" };
+  return { block, section: "other" };
+};
+
+const getFloorCode = (name: string) =>
+  name.split(/\s+/).filter(Boolean).map(w => w[0]).join("").toUpperCase() || "?";
 
 export default function AvailabilityPage() {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [buildingTab, setBuildingTab] = useState<"gold" | "silver">("gold");
-  const [modal, setModal] = useState<"add" | "edit" | null>(null);
-  const [form, setForm] = useState(emptyRoom);
+  const [modal, setModal] = useState<"add" | null>(null);
+  const [form, setForm] = useState<RoomForm>(emptyForm);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [isNewFloor, setIsNewFloor] = useState(false);
 
-  // Building-level bulk
   const [bulkConfirm, setBulkConfirm] = useState<{ status: "available" | "occupied"; step: 1 | 2 } | null>(null);
   const [bulkSaving, setBulkSaving] = useState(false);
 
-  // Floor-level sudo
   const [floorSudo, setFloorSudo] = useState<{ floorName: string } | null>(null);
   const [floorSudoSaving, setFloorSudoSaving] = useState(false);
 
-  // Per-room inline update (key = "building::room_group")
   const [activeRoomUpdate, setActiveRoomUpdate] = useState<string | null>(null);
+  const [editingRoomGroup, setEditingRoomGroup] = useState<string | null>(null);
+  const [editRoomName, setEditRoomName] = useState("");
+  const [renamingRoom, setRenamingRoom] = useState(false);
 
   const fetchRooms = useCallback(async () => {
     const supabase = createClient();
@@ -76,43 +100,98 @@ export default function AvailabilityPage() {
 
   useEffect(() => { fetchRooms(); }, [fetchRooms]);
 
-  // ── Save bed (add/edit) ────────────────────────────────────────────────────
-  const handleSave = async () => {
-    if (!form.room_no.trim() || !form.floor_name.trim()) return;
+  const handleAddRoom = async () => {
+    if (!form.room_group.trim() || !form.floor_name.trim() || form.beds < 1) return;
     setSaving(true);
     setError("");
     const supabase = createClient();
-    const group = form.room_group.trim() || form.room_no.replace(/-[0-9]+[A-Za-z]?$/, "");
-    if (modal === "add") {
-      const { error: err } = await supabase.from("rooms").insert({
-        room_no: form.room_no.trim(), building: form.building,
-        floor_name: form.floor_name.trim(), floor_order: Number(form.floor_order) || 0,
-        room_group: group, status: form.status,
-      });
-      if (err) { setError(err.message); setSaving(false); return; }
-    } else if (form.id) {
-      const { error: err } = await supabase.from("rooms").update({
-        room_no: form.room_no.trim(), building: form.building,
-        floor_name: form.floor_name.trim(), floor_order: Number(form.floor_order) || 0,
-        room_group: group, status: form.status, updated_at: new Date().toISOString(),
-      }).eq("id", form.id);
-      if (err) { setError(err.message); setSaving(false); return; }
-    }
+    const group = form.room_group.trim();
+    const rows = Array.from({ length: form.beds }, (_, i) => ({
+      room_no: `${group}-${i + 1}`,
+      building: form.building,
+      floor_name: form.floor_name.trim(),
+      floor_order: Number(form.floor_order) || 0,
+      room_group: group,
+      status: form.status,
+    }));
+    const { error: err } = await supabase.from("rooms").insert(rows);
+    if (err) { setError(err.message); setSaving(false); return; }
     setModal(null);
-    setForm(emptyRoom);
+    setForm(emptyForm);
+    setIsNewFloor(false);
     await fetchRooms();
     setSaving(false);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Delete this bed?")) return;
+  const handleRenameRoom = async (oldGroup: string, beds: Room[]) => {
+    const newName = editRoomName.trim();
+    if (!newName || newName === oldGroup) {
+      setEditingRoomGroup(null);
+      return;
+    }
+    setRenamingRoom(true);
     const supabase = createClient();
-    const { error: err } = await supabase.from("rooms").delete().eq("id", id);
+    const updates = beds.map(b => {
+      const newRoomNo = b.room_no.startsWith(oldGroup)
+        ? newName + b.room_no.slice(oldGroup.length)
+        : b.room_no;
+      return supabase.from("rooms")
+        .update({ room_group: newName, room_no: newRoomNo, updated_at: new Date().toISOString() })
+        .eq("id", b.id);
+    });
+    const results = await Promise.all(updates);
+    const firstErr = results.find(r => r.error);
+    if (firstErr?.error) setError(firstErr.error.message);
+    await fetchRooms();
+    setEditingRoomGroup(null);
+    setRenamingRoom(false);
+  };
+
+  const handleInlineAddBed = async (beds: Room[]) => {
+    if (beds.length === 0) return;
+    const template = beds[0];
+    const suffixes = beds
+      .map(b => {
+        const m = b.room_no.match(/-(\d+)([A-Za-z]?)$/);
+        return m ? parseInt(m[1], 10) : 0;
+      })
+      .filter(n => n > 0);
+    const nextNum = suffixes.length > 0 ? Math.max(...suffixes) + 1 : beds.length + 1;
+    const newRoomNo = `${template.room_group}-${nextNum}`;
+    const supabase = createClient();
+    const { error: err } = await supabase.from("rooms").insert({
+      room_no: newRoomNo,
+      building: template.building,
+      floor_name: template.floor_name,
+      floor_order: template.floor_order,
+      room_group: template.room_group,
+      status: "available",
+    });
     if (err) { setError(err.message); return; }
     await fetchRooms();
   };
 
-  // ── Building bulk ─────────────────────────────────────────────────────────
+  const handleInlineDeleteBed = async (bed: Room, totalBeds: number) => {
+    const msg = totalBeds === 1
+      ? `Delete bed ${bed.room_no}? This is the LAST bed in room ${bed.room_group} — the entire room will be removed.`
+      : `Delete bed ${bed.room_no}?`;
+    if (!confirm(msg)) return;
+    const supabase = createClient();
+    const { error: err } = await supabase.from("rooms").delete().eq("id", bed.id);
+    if (err) { setError(err.message); return; }
+    await fetchRooms();
+  };
+
+  const handleDeleteRoom = async (beds: Room[]) => {
+    if (!confirm(`Delete room ${beds[0].room_group} and all ${beds.length} beds?`)) return;
+    const supabase = createClient();
+    const ids = beds.map(b => b.id);
+    const { error: err } = await supabase.from("rooms").delete().in("id", ids);
+    if (err) { setError(err.message); return; }
+    setEditingRoomGroup(null);
+    await fetchRooms();
+  };
+
   const handleBulkMark = async (status: "available" | "occupied") => {
     setBulkSaving(true);
     const supabase = createClient();
@@ -123,7 +202,6 @@ export default function AvailabilityPage() {
     setBulkSaving(false);
   };
 
-  // ── Floor sudo ────────────────────────────────────────────────────────────
   const handleFloorSudo = async (status: "available" | "occupied") => {
     if (!floorSudo) return;
     setFloorSudoSaving(true);
@@ -139,17 +217,14 @@ export default function AvailabilityPage() {
     setFloorSudoSaving(false);
   };
 
-  // ── Individual bed toggle ────────────────────────────────────────────────
   const handleBedToggle = async (bed: Room) => {
     const newStatus: Status = bed.status === "available" ? "occupied" : "available";
-    // Optimistic update
     setRooms(prev => prev.map(r => r.id === bed.id ? { ...r, status: newStatus } : r));
     const supabase = createClient();
     await supabase.from("rooms").update({ status: newStatus, updated_at: new Date().toISOString() }).eq("id", bed.id);
     logActivity("toggle", "availability", `Bed ${bed.room_no} in ${bed.room_group}: ${bed.status} → ${newStatus}`);
   };
 
-  // ── Per-room update (updates ALL beds in the room group) ──────────────────
   const handleRoomUpdate = async (beds: Room[], status: "available" | "occupied") => {
     const supabase = createClient();
     const ids = beds.map(b => b.id);
@@ -158,7 +233,6 @@ export default function AvailabilityPage() {
     setActiveRoomUpdate(null);
   };
 
-  // ── Filtering + grouping ──────────────────────────────────────────────────
   const filtered = rooms.filter(r => {
     const matchBuilding = r.building === buildingTab;
     const matchSearch = !search ||
@@ -184,6 +258,174 @@ export default function AvailabilityPage() {
   const goldRooms = rooms.filter(r => r.building === "gold");
   const silverRooms = rooms.filter(r => r.building === "silver");
 
+  const renderRoomCard = (groupName: string, beds: Room[]) => {
+    const roomKey = `${buildingTab}::${groupName}`;
+    const isUpdating = activeRoomUpdate === roomKey;
+    const isEditing = editingRoomGroup === roomKey;
+    const availBeds = beds.filter(b => b.status === "available").length;
+    const allOccupied = availBeds === 0;
+    const allAvailable = availBeds === beds.length;
+
+    if (isEditing) {
+      return (
+        <div
+          key={groupName}
+          className="relative rounded-xl border-2 border-primary/40 bg-primary/5 p-4 shadow-md sm:col-span-2 lg:col-span-3"
+        >
+          <div className="flex items-start justify-between gap-3 mb-3">
+            <div className="flex-1 min-w-0">
+              <label className="block text-[10px] uppercase tracking-wider font-bold text-primary/70 mb-1">Room name</label>
+              <input
+                type="text"
+                value={editRoomName}
+                onChange={(e) => setEditRoomName(e.target.value)}
+                className="w-full border border-primary/30 rounded-lg px-2.5 py-1.5 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/30 bg-white"
+                placeholder={groupName}
+                disabled={renamingRoom}
+              />
+              <p className="text-[10px] text-gray-400 mt-1">{beds.length} bed{beds.length !== 1 ? "s" : ""} · changing name renames all beds</p>
+            </div>
+            <div className="flex flex-col gap-1.5 flex-shrink-0">
+              <button
+                onClick={() => handleRenameRoom(groupName, beds)}
+                disabled={renamingRoom}
+                className="px-3 py-1.5 text-xs font-bold bg-primary text-white rounded-lg hover:bg-primary-dark transition-all disabled:opacity-60"
+              >
+                {renamingRoom ? "Saving..." : "Done"}
+              </button>
+              <button
+                onClick={() => handleDeleteRoom(beds)}
+                className="px-3 py-1.5 text-xs font-bold bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100 transition-all"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+
+          <p className="text-xs text-gray-500 mb-2">Click circle to toggle status · X to delete bed · + to add bed</p>
+
+          <div className="flex flex-wrap gap-2 items-center">
+            {beds.map((bed) => (
+              <div key={bed.id} className="relative group">
+                <button
+                  onClick={() => handleBedToggle(bed)}
+                  title={`${bed.room_no} — ${statusConfig[bed.status].label}`}
+                  className={`w-8 h-8 rounded-full ${statusConfig[bed.status].dot} cursor-pointer transition-all hover:ring-2 hover:ring-offset-1 ${statusConfig[bed.status].ring}`}
+                />
+                <button
+                  onClick={() => handleInlineDeleteBed(bed, beds.length)}
+                  className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                  title="Delete bed"
+                >
+                  <X size={10} strokeWidth={3} />
+                </button>
+              </div>
+            ))}
+            <button
+              onClick={() => handleInlineAddBed(beds)}
+              className="w-8 h-8 rounded-full border-2 border-dashed border-gray-300 text-gray-400 hover:border-primary hover:text-primary transition-all flex items-center justify-center"
+              title="Add bed"
+            >
+              <Plus size={14} />
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div
+        key={groupName}
+        className={`relative rounded-xl border-2 p-3 transition-all ${
+          isUpdating
+            ? "border-primary/40 bg-primary/5 shadow-md"
+            : allOccupied
+            ? "border-orange-100 bg-orange-50/30"
+            : allAvailable
+            ? "border-green-100 bg-green-50/20"
+            : "border-gray-100 bg-white"
+        }`}
+      >
+        <div className="flex items-center justify-between mb-2">
+          <span className="font-bold text-gray-900 text-sm leading-tight">Room {groupName}</span>
+          <span className="text-xs text-gray-400 font-medium">{beds.length}-sh</span>
+        </div>
+
+        {!isUpdating ? (
+          <>
+            <div className="flex flex-wrap gap-1.5 mb-2.5">
+              {beds.map((bed) => (
+                <button
+                  key={bed.id}
+                  onClick={() => handleBedToggle(bed)}
+                  title={`${bed.room_no} — ${statusConfig[bed.status].label} (click to toggle)`}
+                  className={`w-6 h-6 rounded-full ${statusConfig[bed.status].dot} flex-shrink-0 cursor-pointer transition-all hover:ring-2 hover:ring-offset-1 ${statusConfig[bed.status].ring} hover:scale-110 active:scale-95`}
+                />
+              ))}
+            </div>
+
+            <div className="flex items-center justify-between gap-1">
+              <span className={`text-xs font-semibold ${
+                allOccupied ? "text-orange-500" : allAvailable ? "text-green-600" : "text-gray-500"
+              }`}>
+                {allOccupied ? "Full" : allAvailable ? "Empty" : `${availBeds}/${beds.length} free`}
+              </span>
+              <button
+                onClick={() => setActiveRoomUpdate(roomKey)}
+                className="flex items-center gap-0.5 text-xs text-primary font-semibold hover:underline"
+              >
+                Update <ChevronDown size={10} />
+              </button>
+            </div>
+          </>
+        ) : (
+          <div className="space-y-1.5 mt-1">
+            <p className="text-xs text-gray-400 mb-2">Set all {beds.length} beds to:</p>
+            <button
+              onClick={() => handleRoomUpdate(beds, "available")}
+              className="w-full flex items-center gap-2 px-2.5 py-2 bg-green-500 hover:bg-green-600 text-white text-xs font-bold rounded-lg transition-all"
+            >
+              <span className="w-2 h-2 rounded-full bg-white/60" />
+              Available
+            </button>
+            <button
+              onClick={() => handleRoomUpdate(beds, "occupied")}
+              className="w-full flex items-center gap-2 px-2.5 py-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold rounded-lg transition-all"
+            >
+              <span className="w-2 h-2 rounded-full bg-white/60" />
+              Occupied
+            </button>
+            <button
+              onClick={() => setActiveRoomUpdate(null)}
+              className="w-full py-1.5 text-xs text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              Cancel
+            </button>
+
+            <div className="flex gap-1 pt-1 border-t border-gray-100 mt-1">
+              <button
+                onClick={() => {
+                  setEditRoomName(groupName);
+                  setEditingRoomGroup(roomKey);
+                  setActiveRoomUpdate(null);
+                }}
+                className="flex-1 flex items-center justify-center gap-1 py-1.5 text-xs text-primary bg-primary/5 hover:bg-primary/10 rounded-lg font-medium transition-all"
+              >
+                <Pencil size={10} /> Edit
+              </button>
+              <button
+                onClick={() => { handleDeleteRoom(beds); setActiveRoomUpdate(null); }}
+                className="flex-1 flex items-center justify-center gap-1 py-1.5 text-xs text-red-500 bg-red-50 hover:bg-red-100 rounded-lg font-medium transition-all"
+              >
+                <Trash2 size={10} /> Delete
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <div className="p-6 lg:p-8 space-y-4">
@@ -194,7 +436,6 @@ export default function AvailabilityPage() {
 
   return (
     <div className="p-6 lg:p-8">
-      {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Room Availability</h1>
@@ -220,10 +461,10 @@ export default function AvailabilityPage() {
             <XCircle size={15} /> Mark All Full
           </button>
           <button
-            onClick={() => { setForm({ ...emptyRoom, building: buildingTab }); setModal("add"); setError(""); }}
+            onClick={() => { setForm({ ...emptyForm, building: buildingTab }); setIsNewFloor(false); setModal("add"); setError(""); }}
             className="flex items-center gap-2 px-4 py-2.5 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-all text-sm shadow-sm"
           >
-            <Plus size={16} /> Add Bed
+            <Plus size={16} /> Add Room
           </button>
         </div>
       </div>
@@ -232,7 +473,6 @@ export default function AvailabilityPage() {
         <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-xl border border-red-200">{error}</div>
       )}
 
-      {/* ── Legend + Search ─────────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row gap-3 mb-5">
         <div className="flex flex-wrap gap-2 flex-1">
           {Object.entries(statusConfig).map(([k, v]) => (
@@ -253,7 +493,6 @@ export default function AvailabilityPage() {
         </div>
       </div>
 
-      {/* ── Building Tabs ───────────────────────────────────────────────────── */}
       <div className="flex gap-2 mb-6">
         {(["gold", "silver"] as const).map((b) => {
           const list = b === "gold" ? goldRooms : silverRooms;
@@ -276,11 +515,10 @@ export default function AvailabilityPage() {
         })}
       </div>
 
-      {/* ── Floors ──────────────────────────────────────────────────────────── */}
       {sortedFloors.length === 0 ? (
         <div className="bg-white rounded-2xl p-12 text-center text-gray-400 shadow-sm border border-gray-100">
           <p className="text-lg font-medium">No rooms found</p>
-          <p className="text-sm mt-1">Click &quot;Add Bed&quot; to get started.</p>
+          <p className="text-sm mt-1">Click &quot;Add Room&quot; to get started.</p>
         </div>
       ) : (
         <div className="space-y-6">
@@ -290,24 +528,41 @@ export default function AvailabilityPage() {
             const floorAvail = floorRooms.filter(r => r.status === "available").length;
             const floorOccupied = floorRooms.filter(r => r.status === "occupied").length;
 
+            const groupEntries = Object.entries(groups);
+            const floorCode = getFloorCode(floorName);
+
+            type BlockSections = { hall: [string, Room[]][]; left: [string, Room[]][]; right: [string, Room[]][]; other: [string, Room[]][] };
+            const blocksMap: Record<string, BlockSections> = {};
+            let hasBlocks = false;
+
+            if (buildingTab === "silver") {
+              for (const entry of groupEntries) {
+                const { block, section } = getBlockInfo(entry[0]);
+                if (!blocksMap[block]) blocksMap[block] = { hall: [], left: [], right: [], other: [] };
+                blocksMap[block][section].push(entry);
+              }
+              hasBlocks = Object.values(blocksMap).some(b => b.hall.length + b.left.length + b.right.length > 0);
+            }
+            const sortedBlocks = Object.entries(blocksMap).sort(([a], [b]) => a.localeCompare(b, undefined, { numeric: true }));
+
             return (
               <div
                 key={floorName}
                 className={`rounded-2xl shadow-sm border border-gray-100 overflow-hidden border-l-4 ${accent.bar}`}
               >
-                {/* ── Floor Header ─────────────────────────────────────────── */}
                 <div className={`px-5 py-3.5 ${accent.header} border-b border-gray-100 flex items-center justify-between gap-3`}>
                   <div className="flex items-center gap-3 min-w-0">
-                    {/* Floor number badge */}
                     <span className={`text-xs font-bold px-2.5 py-1 rounded-full flex-shrink-0 ${accent.badge}`}>
-                      Floor {floorIdx + 1}
+                      {floorCode}
                     </span>
                     <span className="font-bold text-gray-900 truncate">{floorName}</span>
-                    <span className="text-xs text-gray-400 flex-shrink-0">{Object.keys(groups).length} rooms · {floorRooms.length} beds</span>
+                    <span className="text-xs text-gray-400 flex-shrink-0">
+                      {buildingTab === "silver" && hasBlocks ? `${sortedBlocks.length} block${sortedBlocks.length !== 1 ? "s" : ""} · ` : ""}
+                      {Object.keys(groups).length} rooms · {floorRooms.length} beds
+                    </span>
                   </div>
 
                   <div className="flex items-center gap-3 flex-shrink-0">
-                    {/* Availability stats */}
                     <div className="hidden sm:flex items-center gap-2 text-xs">
                       <span className="flex items-center gap-1 text-green-600 font-semibold">
                         <span className="w-2 h-2 rounded-full bg-green-500" />{floorAvail} avail.
@@ -318,7 +573,6 @@ export default function AvailabilityPage() {
                       </span>
                     </div>
 
-                    {/* Sudo button */}
                     <button
                       onClick={() => setFloorSudo({ floorName })}
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white text-xs font-bold transition-all ${accent.sudo}`}
@@ -329,124 +583,115 @@ export default function AvailabilityPage() {
                   </div>
                 </div>
 
-                {/* ── Room Cards ───────────────────────────────────────────── */}
-                <div className="bg-white p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-                  {Object.entries(groups).map(([groupName, beds]) => {
-                    const roomKey = `${buildingTab}::${groupName}`;
-                    const isUpdating = activeRoomUpdate === roomKey;
-                    const availBeds = beds.filter(b => b.status === "available").length;
-                    const allOccupied = availBeds === 0;
-                    const allAvailable = availBeds === beds.length;
-
-                    return (
-                      <div
-                        key={groupName}
-                        className={`relative rounded-xl border-2 p-3 transition-all ${
-                          isUpdating
-                            ? "border-primary/40 bg-primary/3 shadow-md"
-                            : allOccupied
-                            ? "border-orange-100 bg-orange-50/30"
-                            : allAvailable
-                            ? "border-green-100 bg-green-50/20"
-                            : "border-gray-100 bg-white"
-                        }`}
-                      >
-                        {/* Room name + sharing */}
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="font-bold text-gray-900 text-sm leading-tight">
-                            Room {groupName}
-                          </span>
-                          <span className="text-xs text-gray-400 font-medium">{beds.length}‑sh</span>
-                        </div>
-
-                        {!isUpdating ? (
-                          <>
-                            {/* Bed status circles — click to toggle */}
-                            <div className="flex flex-wrap gap-1.5 mb-2.5">
-                              {beds.map((bed) => (
-                                <button
-                                  key={bed.id}
-                                  onClick={() => handleBedToggle(bed)}
-                                  title={`${bed.room_no} — ${statusConfig[bed.status].label} (click to toggle)`}
-                                  className={`w-6 h-6 rounded-full ${statusConfig[bed.status].dot} flex-shrink-0 cursor-pointer transition-all hover:ring-2 hover:ring-offset-1 ${statusConfig[bed.status].ring} hover:scale-110 active:scale-95`}
-                                />
-                              ))}
+                {buildingTab === "silver" && hasBlocks ? (
+                  <div className="bg-gradient-to-br from-slate-50 to-slate-100/80 p-5">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                      {sortedBlocks.map(([blockName, sections]) => {
+                        const blockRooms = [...sections.hall, ...sections.left, ...sections.right, ...sections.other].flatMap(([, b]) => b);
+                        const blockAvail = blockRooms.filter(r => r.status === "available").length;
+                        const blockOcc = blockRooms.filter(r => r.status === "occupied").length;
+                        const blockTotal = blockRooms.length;
+                        return (
+                          <div
+                            key={blockName}
+                            className="rounded-2xl border border-slate-300/70 bg-white shadow-sm overflow-hidden"
+                          >
+                            <div className="px-4 py-3 bg-gradient-to-r from-slate-800 to-slate-700 flex items-center justify-between">
+                              <div className="flex items-center gap-2.5">
+                                <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-white/10 text-white text-xs font-bold tracking-tight">
+                                  {blockName}
+                                </span>
+                                <div className="flex flex-col">
+                                  <span className="text-white text-sm font-bold leading-tight">Block {blockName}</span>
+                                  <span className="text-slate-300 text-[10px] leading-tight">{blockTotal} bed{blockTotal !== 1 ? "s" : ""}</span>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-1.5 text-[11px] font-semibold">
+                                <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500/15 text-green-300 border border-green-500/20">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-green-400" />{blockAvail}
+                                </span>
+                                <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-500/15 text-orange-300 border border-orange-500/20">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-orange-400" />{blockOcc}
+                                </span>
+                              </div>
                             </div>
 
-                            {/* Status summary + Update button */}
-                            <div className="flex items-center justify-between gap-1">
-                              <span className={`text-xs font-semibold ${
-                                allOccupied ? "text-orange-500" : allAvailable ? "text-green-600" : "text-gray-500"
-                              }`}>
-                                {allOccupied ? "Full" : allAvailable ? "Empty" : `${availBeds}/${beds.length} free`}
-                              </span>
-                              <button
-                                onClick={() => setActiveRoomUpdate(roomKey)}
-                                className="flex items-center gap-0.5 text-xs text-primary font-semibold hover:underline"
-                              >
-                                Update <ChevronDown size={10} />
-                              </button>
-                            </div>
-                          </>
-                        ) : (
-                          /* ── Inline update picker ── */
-                          <div className="space-y-1.5 mt-1">
-                            <p className="text-xs text-gray-400 mb-2">Set all {beds.length} beds to:</p>
-                            <button
-                              onClick={() => handleRoomUpdate(beds, "available")}
-                              className="w-full flex items-center gap-2 px-2.5 py-2 bg-green-500 hover:bg-green-600 text-white text-xs font-bold rounded-lg transition-all"
-                            >
-                              <span className="w-2 h-2 rounded-full bg-white/60" />
-                              Available
-                            </button>
-                            <button
-                              onClick={() => handleRoomUpdate(beds, "occupied")}
-                              className="w-full flex items-center gap-2 px-2.5 py-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold rounded-lg transition-all"
-                            >
-                              <span className="w-2 h-2 rounded-full bg-white/60" />
-                              Occupied
-                            </button>
-                            <button
-                              onClick={() => setActiveRoomUpdate(null)}
-                              className="w-full py-1.5 text-xs text-gray-400 hover:text-gray-600 transition-colors"
-                            >
-                              Cancel
-                            </button>
+                            <div className="p-4 bg-gradient-to-br from-slate-100/60 to-slate-50">
+                              {sections.hall.length > 0 && (
+                                <div className="mb-4">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-bold uppercase tracking-wider rounded-md border border-amber-200">
+                                      ⬤ Hall
+                                    </span>
+                                    <div className="flex-1 h-px bg-amber-200/40" />
+                                  </div>
+                                  <div className="grid grid-cols-1 gap-2">
+                                    {sections.hall.map(([gn, beds]) => renderRoomCard(gn, beds))}
+                                  </div>
+                                </div>
+                              )}
 
-                            {/* Edit / Delete for the room group */}
-                            <div className="flex gap-1 pt-1 border-t border-gray-100 mt-1">
-                              <button
-                                onClick={() => {
-                                  const bed = beds[0];
-                                  setForm({ ...bed, floor_order: bed.floor_order ?? 0, room_group: bed.room_group || "" });
-                                  setModal("edit");
-                                  setActiveRoomUpdate(null);
-                                  setError("");
-                                }}
-                                className="flex-1 flex items-center justify-center gap-1 py-1.5 text-xs text-primary bg-primary/5 hover:bg-primary/10 rounded-lg font-medium transition-all"
-                              >
-                                <Pencil size={10} /> Edit
-                              </button>
-                              <button
-                                onClick={() => { handleDelete(beds[0].id); setActiveRoomUpdate(null); }}
-                                className="flex-1 flex items-center justify-center gap-1 py-1.5 text-xs text-red-500 bg-red-50 hover:bg-red-100 rounded-lg font-medium transition-all"
-                              >
-                                <Trash2 size={10} /> Delete
-                              </button>
+                              <div className="relative grid grid-cols-2 gap-3">
+                                <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-slate-300 to-transparent -translate-x-1/2" />
+
+                                <div>
+                                  <div className="flex items-center gap-1.5 mb-2">
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-100 text-blue-800 text-[10px] font-bold uppercase tracking-wider rounded-md border border-blue-200">
+                                      ◀ Left
+                                    </span>
+                                  </div>
+                                  {sections.left.length === 0 ? (
+                                    <p className="text-[11px] text-slate-400 italic py-3 text-center border-2 border-dashed border-slate-200 rounded-lg bg-white/40">Empty</p>
+                                  ) : (
+                                    <div className="grid grid-cols-1 gap-2">
+                                      {sections.left.map(([gn, beds]) => renderRoomCard(gn, beds))}
+                                    </div>
+                                  )}
+                                </div>
+
+                                <div>
+                                  <div className="flex items-center justify-end gap-1.5 mb-2">
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-rose-100 text-rose-800 text-[10px] font-bold uppercase tracking-wider rounded-md border border-rose-200">
+                                      Right ▶
+                                    </span>
+                                  </div>
+                                  {sections.right.length === 0 ? (
+                                    <p className="text-[11px] text-slate-400 italic py-3 text-center border-2 border-dashed border-slate-200 rounded-lg bg-white/40">Empty</p>
+                                  ) : (
+                                    <div className="grid grid-cols-1 gap-2">
+                                      {sections.right.map(([gn, beds]) => renderRoomCard(gn, beds))}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+
+                              {sections.other.length > 0 && (
+                                <div className="mt-4 pt-3 border-t border-dashed border-slate-300">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Other</span>
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-2">
+                                    {sections.other.map(([gn, beds]) => renderRoomCard(gn, beds))}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-white p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+                    {groupEntries.map(([groupName, beds]) => renderRoomCard(groupName, beds))}
+                  </div>
+                )}
               </div>
             );
           })}
         </div>
       )}
 
-      {/* ── Floor Sudo Modal ────────────────────────────────────────────────── */}
       {floorSudo && (() => {
         const floorRooms = rooms.filter(r => r.floor_name === floorSudo.floorName && r.building === buildingTab);
         const fAvail = floorRooms.filter(r => r.status === "available").length;
@@ -456,7 +701,6 @@ export default function AvailabilityPage() {
         return (
           <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
-              {/* Header */}
               <div className={`px-6 py-4 ${accent.header} border-b border-gray-100 flex items-center justify-between`}>
                 <div>
                   <div className="flex items-center gap-2 mb-0.5">
@@ -519,7 +763,6 @@ export default function AvailabilityPage() {
         );
       })()}
 
-      {/* ── Building Bulk Confirmation Modal ────────────────────────────────── */}
       {bulkConfirm && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm">
@@ -585,195 +828,184 @@ export default function AvailabilityPage() {
         </div>
       )}
 
-      {/* ── Add / Edit Bed Modal ─────────────────────────────────────────────── */}
-      {modal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
-            <div className="p-6 border-b border-gray-100 flex items-center justify-between">
-              <h3 className="font-bold text-gray-900 text-lg">{modal === "add" ? "Add New Bed" : "Edit Bed"}</h3>
-              <button onClick={() => { setModal(null); setForm(emptyRoom); setError(""); }} className="text-gray-400 hover:text-gray-600">
-                <X size={20} />
-              </button>
-            </div>
+      {modal === "add" && (() => {
+        const buildingRooms = rooms.filter(r => r.building === form.building);
+        const existingFloors = Array.from(
+          new Map(buildingRooms.map(r => [r.floor_name, r.floor_order])).entries()
+        ).filter(([f]) => f).sort((a, b) => a[1] - b[1]);
+        const existingGroups = new Set(buildingRooms.map(r => r.room_group));
+        const isDuplicateGroup = form.room_group.trim() && existingGroups.has(form.room_group.trim());
+        const canSave = !saving && form.room_group.trim() && form.floor_name.trim() && form.beds >= 1 && !isDuplicateGroup;
 
-            <div className="p-6 space-y-4">
-              {error && <div className="p-3 bg-red-50 text-red-600 text-sm rounded-xl border border-red-200">{error}</div>}
-
-              {/* Building */}
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1.5">Building *</label>
-                <select
-                  value={form.building}
-                  onChange={(e) => setForm({ ...form, building: e.target.value as "gold" | "silver", room_group: "", floor_name: "", floor_order: 0 })}
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none bg-white"
-                >
-                  <option value="gold">Gold Building</option>
-                  <option value="silver">Silver Building</option>
-                </select>
+        return (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+              <div className="p-6 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10">
+                <div>
+                  <h3 className="font-bold text-gray-900 text-lg">Add New Room</h3>
+                  <p className="text-xs text-gray-500 mt-0.5">Creates a room with multiple beds</p>
+                </div>
+                <button onClick={() => { setModal(null); setForm(emptyForm); setIsNewFloor(false); setError(""); }} className="text-gray-400 hover:text-gray-600">
+                  <X size={20} />
+                </button>
               </div>
 
-              {/* Room Group — dropdown of existing + create new */}
-              {(() => {
-                const buildingRooms = rooms.filter(r => r.building === form.building);
-                const existingGroups = Array.from(new Set(buildingRooms.map(r => r.room_group || r.room_no))).sort();
-                const groupLookup: Record<string, { floor: string; floorOrder: number; count: number }> = {};
-                for (const r of buildingRooms) {
-                  const g = r.room_group || r.room_no;
-                  if (!groupLookup[g]) groupLookup[g] = { floor: r.floor_name, floorOrder: r.floor_order, count: 0 };
-                  groupLookup[g].count++;
-                }
-                return (
-                  <>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1.5">Room Group *</label>
-                      <select
-                        value={form.room_group}
-                        onChange={(e) => {
-                          const g = e.target.value;
-                          if (g && groupLookup[g]) {
-                            setForm({ ...form, room_group: g, floor_name: groupLookup[g].floor, floor_order: groupLookup[g].floorOrder });
-                          } else {
-                            setForm({ ...form, room_group: g });
-                          }
-                        }}
-                        className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none bg-white"
+              <div className="p-6 space-y-5">
+                {error && <div className="p-3 bg-red-50 text-red-600 text-sm rounded-xl border border-red-200">{error}</div>}
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-2">Building</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {(["gold", "silver"] as const).map(b => (
+                      <button
+                        key={b}
+                        type="button"
+                        onClick={() => { setForm({ ...form, building: b, floor_name: "", floor_order: 0 }); setIsNewFloor(false); }}
+                        className={`flex items-center justify-center gap-2 py-3 rounded-xl border-2 text-sm font-semibold transition-all ${
+                          form.building === b
+                            ? "border-primary bg-primary/5 text-primary"
+                            : "border-gray-200 text-gray-500 hover:border-gray-300"
+                        }`}
                       >
-                        <option value="">-- New Room Group --</option>
-                        {existingGroups.map(g => (
-                          <option key={g} value={g}>
-                            Room {g} ({groupLookup[g]?.floor} · {groupLookup[g]?.count}-sharing)
-                          </option>
-                        ))}
-                      </select>
-                      {!form.room_group && (
-                        <input
-                          type="text"
-                          value={form.room_group}
-                          onChange={(e) => setForm({ ...form, room_group: e.target.value })}
-                          className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 mt-2"
-                          placeholder="Enter new room group name (e.g., 31)"
-                        />
-                      )}
-                    </div>
+                        <span>{b === "gold" ? "🥇" : "🥈"}</span>
+                        <span className="capitalize">{b}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      {/* Floor — dropdown of existing + type new */}
-                      <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1.5">Floor *</label>
-                        {(() => {
-                          const existingFloors = Array.from(new Set(buildingRooms.map(r => r.floor_name))).filter(Boolean).sort();
-                          return (
-                            <>
-                              <select
-                                value={form.floor_name}
-                                onChange={(e) => {
-                                  const f = e.target.value;
-                                  if (f === "__new__") {
-                                    setForm({ ...form, floor_name: "" });
-                                  } else {
-                                    const match = buildingRooms.find(r => r.floor_name === f);
-                                    setForm({ ...form, floor_name: f, floor_order: match?.floor_order ?? form.floor_order });
-                                  }
-                                }}
-                                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none bg-white"
-                              >
-                                <option value="">-- Select or type --</option>
-                                {existingFloors.map(f => (
-                                  <option key={f} value={f}>{f}</option>
-                                ))}
-                                <option value="__new__">+ Create New Floor</option>
-                              </select>
-                              {form.floor_name === "" && (
-                                <input
-                                  type="text"
-                                  onChange={(e) => setForm({ ...form, floor_name: e.target.value })}
-                                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 mt-2"
-                                  placeholder="New floor name"
-                                />
-                              )}
-                            </>
-                          );
-                        })()}
-                      </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-2">On Which Floor?</label>
+                  <select
+                    value={isNewFloor ? "__new__" : form.floor_name}
+                    onChange={(e) => {
+                      const f = e.target.value;
+                      if (f === "__new__") {
+                        setIsNewFloor(true);
+                        setForm({ ...form, floor_name: "", floor_order: (existingFloors[existingFloors.length - 1]?.[1] ?? 0) + 1 });
+                      } else if (f === "") {
+                        setIsNewFloor(false);
+                        setForm({ ...form, floor_name: "", floor_order: 0 });
+                      } else {
+                        setIsNewFloor(false);
+                        const match = buildingRooms.find(r => r.floor_name === f);
+                        setForm({ ...form, floor_name: f, floor_order: match?.floor_order ?? 0 });
+                      }
+                    }}
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 bg-white"
+                  >
+                    <option value="">-- Select a floor --</option>
+                    {existingFloors.map(([f]) => (
+                      <option key={f} value={f}>{f}</option>
+                    ))}
+                    <option value="__new__">+ Create New Floor</option>
+                  </select>
 
-                      {/* Floor order */}
-                      <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1.5">Floor Order</label>
-                        <input
-                          type="number"
-                          value={form.floor_order || ""}
-                          onChange={(e) => setForm({ ...form, floor_order: Number(e.target.value) })}
-                          className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                          placeholder="1"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Bed number — auto-suggest next */}
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1.5">Bed / Room No *</label>
+                  {isNewFloor && (
+                    <div className="grid grid-cols-[1fr_auto] gap-2 mt-2">
                       <input
                         type="text"
-                        value={form.room_no}
-                        onChange={(e) => setForm({ ...form, room_no: e.target.value })}
-                        className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                        placeholder={form.room_group && groupLookup[form.room_group]
-                          ? `e.g., ${form.room_group}-${groupLookup[form.room_group].count + 1}`
-                          : "e.g., 21-1"}
+                        value={form.floor_name}
+                        onChange={(e) => setForm({ ...form, floor_name: e.target.value })}
+                        className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        placeholder="Floor name (e.g., Ground Floor)"
+                        autoFocus
                       />
-                      {form.room_group && groupLookup[form.room_group] && (
-                        <p className="text-xs text-gray-400 mt-1">
-                          Room {form.room_group} currently has {groupLookup[form.room_group].count} bed{groupLookup[form.room_group].count !== 1 ? "s" : ""}
-                        </p>
-                      )}
+                      <input
+                        type="number"
+                        value={form.floor_order || ""}
+                        onChange={(e) => setForm({ ...form, floor_order: Number(e.target.value) })}
+                        className="w-20 border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        placeholder="Order"
+                      />
                     </div>
-                  </>
-                );
-              })()}
+                  )}
+                </div>
 
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1.5">Status *</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {(Object.entries(statusConfig) as [Status, typeof statusConfig[Status]][]).map(([key, cfg]) => (
-                    <button
-                      key={key}
-                      type="button"
-                      onClick={() => setForm({ ...form, status: key })}
-                      className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl border-2 text-xs font-semibold transition-all ${
-                        form.status === key
-                          ? `${cfg.border} ${key === "available" ? "bg-green-50 text-green-700" : key === "occupied" ? "bg-orange-50 text-orange-700" : "bg-gray-100 text-gray-600"}`
-                          : "border-gray-100 text-gray-400 hover:border-gray-200"
-                      }`}
-                    >
-                      <span className={`w-2 h-2 rounded-full ${cfg.bg}`} />
-                      {cfg.label}
-                    </button>
-                  ))}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-2">Room Name</label>
+                  <input
+                    type="text"
+                    value={form.room_group}
+                    onChange={(e) => setForm({ ...form, room_group: e.target.value })}
+                    className={`w-full border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 ${
+                      isDuplicateGroup ? "border-red-300 focus:ring-red-200" : "border-gray-200 focus:ring-primary/20"
+                    }`}
+                    placeholder={form.building === "silver" ? "e.g., GF1-L, SF2-R" : "e.g., 31"}
+                  />
+                  {isDuplicateGroup && (
+                    <p className="text-xs text-red-500 mt-1">Room &quot;{form.room_group}&quot; already exists in {form.building}</p>
+                  )}
+                  {!isDuplicateGroup && form.room_group && (
+                    <p className="text-xs text-gray-400 mt-1">Will create beds: {Array.from({ length: form.beds }, (_, i) => `${form.room_group}-${i + 1}`).join(", ")}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-2">Bed Sharing</label>
+                  <div className="grid grid-cols-5 gap-2">
+                    {[1, 2, 3, 4, 6].map(n => (
+                      <button
+                        key={n}
+                        type="button"
+                        onClick={() => setForm({ ...form, beds: n })}
+                        className={`py-3 rounded-xl border-2 text-sm font-bold transition-all ${
+                          form.beds === n
+                            ? "border-primary bg-primary/5 text-primary"
+                            : "border-gray-200 text-gray-500 hover:border-gray-300"
+                        }`}
+                      >
+                        {n}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-xs text-gray-400 mt-1.5">Number of beds in this room</p>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-2">Initial Status</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {(Object.entries(statusConfig) as [Status, typeof statusConfig[Status]][]).map(([key, cfg]) => (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => setForm({ ...form, status: key })}
+                        className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl border-2 text-xs font-semibold transition-all ${
+                          form.status === key
+                            ? `${cfg.border} ${key === "available" ? "bg-green-50 text-green-700" : key === "occupied" ? "bg-orange-50 text-orange-700" : "bg-gray-100 text-gray-600"}`
+                            : "border-gray-100 text-gray-400 hover:border-gray-200"
+                        }`}
+                      >
+                        <span className={`w-2 h-2 rounded-full ${cfg.bg}`} />
+                        {cfg.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="p-6 border-t border-gray-100 flex gap-3">
-              <button
-                onClick={() => { setModal(null); setForm(emptyRoom); setError(""); }}
-                className="flex-1 py-3 border border-gray-200 text-gray-600 font-semibold rounded-xl hover:bg-gray-50 transition-all text-sm"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={saving || !form.room_no.trim() || !form.floor_name.trim()}
-                className="flex-[2] flex items-center justify-center gap-2 py-3 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-all text-sm disabled:opacity-50"
-              >
-                {saving
-                  ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Saving...</>
-                  : <><Check size={16} /> {modal === "add" ? "Add Bed" : "Save Changes"}</>
-                }
-              </button>
+              <div className="p-6 border-t border-gray-100 flex gap-3 sticky bottom-0 bg-white">
+                <button
+                  onClick={() => { setModal(null); setForm(emptyForm); setIsNewFloor(false); setError(""); }}
+                  className="flex-1 py-3 border border-gray-200 text-gray-600 font-semibold rounded-xl hover:bg-gray-50 transition-all text-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAddRoom}
+                  disabled={!canSave}
+                  className="flex-[2] flex items-center justify-center gap-2 py-3 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {saving
+                    ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Creating...</>
+                    : <><Check size={16} /> Create Room ({form.beds} bed{form.beds !== 1 ? "s" : ""})</>
+                  }
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }

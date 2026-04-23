@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { createClient } from "@/utils/supabase/client";
+import { logActivity } from "@/utils/activity-logger";
 import {
   Plus, Trash2, TrendingDown, ShoppingCart, Wrench, Zap, MoreHorizontal,
   ChevronDown, ChevronRight, CalendarDays, Calendar, BarChart3, ChevronUp,
@@ -182,10 +183,11 @@ export default function ExpensesPage() {
 
   useEffect(() => { fetchItems(); }, [fetchItems]);
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: string, name?: string) => {
     if (!confirm("Delete this expense item?")) return;
     const supabase = createClient();
     await supabase.from("expense_items").delete().eq("id", id);
+    logActivity("delete", "expenses", `Deleted expense: ${name || id}`);
     setItems((prev) => prev.filter((i) => i.id !== id));
   };
 

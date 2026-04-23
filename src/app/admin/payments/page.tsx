@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { createClient } from "@/utils/supabase/client";
-import { CreditCard, Plus, Search, Trash2, X, IndianRupee, BarChart3, ChevronDown, ChevronUp, AlertCircle, CheckCircle, XCircle } from "lucide-react";
+import { CreditCard, Plus, Search, Trash2, X, IndianRupee, BarChart3, ChevronDown, ChevronUp, AlertCircle, CheckCircle, XCircle, Pencil } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
@@ -30,6 +30,7 @@ interface Student {
   building: string;
   monthly_rent: number;
   new_rent: number;
+  advance: number;
 }
 
 const MONTHS = [
@@ -51,7 +52,12 @@ export default function PaymentsPage() {
   const [showAdd, setShowAdd] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showGraph, setShowGraph] = useState(true);
+  const [studentFilter, setStudentFilter] = useState("all");
+  const [modalBuilding, setModalBuilding] = useState<"gold" | "silver">("gold");
+  const [editPayment, setEditPayment] = useState<Payment | null>(null);
+  const [editSaving, setEditSaving] = useState(false);
   const [dueModal, setDueModal] = useState<{ studentId: string; studentName: string; rent: number; paid: number } | null>(null);
+  const [commentModal, setCommentModal] = useState<{ name: string; comment: string; room_no: string; building: string } | null>(null);
   const [form, setForm] = useState({
     student_id: "",
     building: "gold",
@@ -69,7 +75,7 @@ export default function PaymentsPage() {
     const supabase = createClient();
     const [pm, st] = await Promise.all([
       supabase.from("student_payments").select("*").order("created_at", { ascending: false }),
-      supabase.from("students").select("id, name, room_no, building, monthly_rent, new_rent").eq("status", "active").order("building").order("room_no"),
+      supabase.from("students").select("id, name, room_no, building, monthly_rent, new_rent, advance").eq("status", "active").order("building").order("room_no"),
     ]);
     setPayments(pm.data || []);
     setStudents(st.data || []);
@@ -82,7 +88,8 @@ export default function PaymentsPage() {
     const matchSearch = !search || p.student_name?.toLowerCase().includes(search.toLowerCase()) || p.room_no?.includes(search);
     const matchBuilding = buildingFilter === "all" || p.building === buildingFilter;
     const matchMonth = p.month === monthFilter && p.year === yearFilter;
-    return matchSearch && matchBuilding && matchMonth;
+    const matchStudent = studentFilter === "all" || p.student_id === studentFilter;
+    return matchSearch && matchBuilding && matchMonth && matchStudent;
   });
 
   const totalCollected = filtered.reduce((sum, p) => sum + (p.amount_paid || 0), 0);
@@ -137,6 +144,7 @@ export default function PaymentsPage() {
     await supabase.from("student_payments").insert(form);
     logActivity("create", "payments", `Payment ₹${form.amount_paid} for ${form.student_name} (${form.month} ${form.year})`);
     setShowAdd(false);
+    setModalBuilding("gold");
     setForm({
       student_id: "", building: "gold", room_no: "", student_name: "",
       month: currentMonth, year: currentYear, amount_paid: 0,
@@ -152,6 +160,18 @@ export default function PaymentsPage() {
     await supabase.from("student_payments").delete().eq("id", id);
     logActivity("delete", "payments", `Deleted payment record ${id}`);
     await fetchData();
+  };
+
+  const handleUpdate = async () => {
+    if (!editPayment) return;
+    setEditSaving(true);
+    const supabase = createClient();
+    const { id, created_at, student_id, building, room_no, student_name, ...fields } = editPayment;
+    await supabase.from("student_payments").update(fields).eq("id", id);
+    logActivity("update", "payments", `Updated payment for ${student_name} (${editPayment.month} ${editPayment.year})`);
+    setEditPayment(null);
+    await fetchData();
+    setEditSaving(false);
   };
 
   // Graph data — all months of selected year, all buildings
@@ -181,12 +201,24 @@ export default function PaymentsPage() {
             {monthFilter} {yearFilter} · <span className="text-green-600 font-semibold">₹{totalCollected.toLocaleString("en-IN")} collected</span>
           </p>
         </div>
-        <button
-          onClick={() => setShowAdd(true)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-all text-sm shadow-sm"
-        >
-          <Plus size={16} /> Add Payment
-        </button>
+        <div className="flex items-center gap-2">
+          <select
+            value={studentFilter}
+            onChange={(e) => setStudentFilter(e.target.value)}
+            className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none bg-white max-w-[200px]"
+          >
+            <option value="all">All Students</option>
+            {students.map((s) => (
+              <option key={s.id} value={s.id}>{s.name} ({s.room_no})</option>
+            ))}
+          </select>
+          <button
+            onClick={() => setShowAdd(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-all text-sm shadow-sm"
+          >
+            <Plus size={16} /> Add Payment
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -296,38 +328,62 @@ export default function PaymentsPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50 text-xs">
-                  <th className="text-left px-4 py-3 font-semibold text-gray-500">Room</th>
-                  <th className="text-left px-4 py-3 font-semibold text-gray-500">Name</th>
                   <th className="text-left px-4 py-3 font-semibold text-gray-500">Building</th>
-                  <th className="text-left px-4 py-3 font-semibold text-gray-500">Month</th>
-                  <th className="text-left px-4 py-3 font-semibold text-gray-500">Amount</th>
-                  <th className="text-left px-4 py-3 font-semibold text-gray-500">Date</th>
+                  <th className="text-left px-4 py-3 font-semibold text-gray-500">Room No</th>
+                  <th className="text-left px-4 py-3 font-semibold text-gray-500">Name</th>
+                  <th className="text-left px-4 py-3 font-semibold text-gray-500">Advance</th>
+                  <th className="text-left px-4 py-3 font-semibold text-gray-500">Monthly Rent</th>
+                  <th className="text-left px-4 py-3 font-semibold text-gray-500">Paid Amount</th>
+                  <th className="text-left px-4 py-3 font-semibold text-gray-500">Date of Payment</th>
                   <th className="text-left px-4 py-3 font-semibold text-gray-500">Mode</th>
-                  <th className="text-left px-4 py-3 font-semibold text-gray-500">Comment</th>
                   <th className="text-left px-4 py-3 font-semibold text-gray-500">Status</th>
                   <th className="text-left px-4 py-3 font-semibold text-gray-500">Del</th>
+                  <th className="text-left px-4 py-3 font-semibold text-gray-500">Edit</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {filtered.map((p) => (
+                {filtered.map((p) => {
+                  const s = students.find((s) => s.id === p.student_id);
+                  const rent = s ? (s.new_rent || s.monthly_rent || 0) : 0;
+                  const advance = s?.advance || 0;
+                  const status = getPaymentStatus(p.student_id);
+                  return (
                   <tr key={p.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3 font-medium text-gray-900">{p.room_no || "—"}</td>
-                    <td className="px-4 py-3 font-semibold text-gray-900">{p.student_name}</td>
                     <td className="px-4 py-3">
                       <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${p.building === "gold" ? "bg-yellow-100 text-yellow-700" : "bg-slate-100 text-slate-600"}`}>
                         {p.building}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-gray-600 text-xs">{p.month} {p.year}</td>
-                    <td className="px-4 py-3 font-bold text-green-700">₹{p.amount_paid?.toLocaleString("en-IN")}</td>
+                    <td className="px-4 py-3 font-medium text-gray-900">{p.room_no || "—"}</td>
+                    <td className="px-4 py-3">
+                      <button
+                        onClick={() => {
+                          setCommentModal({ name: p.student_name, comment: p.comment || "", room_no: p.room_no, building: p.building });
+                        }}
+                        className="font-semibold text-gray-900 hover:text-primary transition-colors text-left underline decoration-dotted underline-offset-2"
+                      >
+                        {p.student_name}
+                      </button>
+                    </td>
+                    <td className="px-4 py-3 text-sm">
+                      {advance > 0 ? <span className="font-semibold text-green-700">₹{advance.toLocaleString("en-IN")}</span> : <span className="text-gray-400">—</span>}
+                    </td>
+                    <td className="px-4 py-3 text-sm">
+                      {rent ? <span className="font-medium text-gray-700">₹{rent.toLocaleString("en-IN")}</span> : <span className="text-gray-400">—</span>}
+                    </td>
+                    <td className="px-4 py-3 font-bold">
+                      {(() => {
+                        const ratio = rent > 0 ? p.amount_paid / rent : 1;
+                        const color = ratio >= 1 ? "text-green-700" : ratio >= 0.5 ? "text-amber-600" : "text-red-600";
+                        return <span className={color}>₹{p.amount_paid?.toLocaleString("en-IN")}</span>;
+                      })()}
+                    </td>
                     <td className="px-4 py-3 text-xs text-gray-500">
                       {p.payment_date ? new Date(p.payment_date).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) : "—"}
                     </td>
                     <td className="px-4 py-3 text-xs text-gray-500 capitalize">{p.payment_mode}</td>
-                    <td className="px-4 py-3 text-xs text-gray-400 max-w-[100px] truncate">{p.comment || "—"}</td>
                     <td className="px-4 py-3">
                       {(() => {
-                        const status = getPaymentStatus(p.student_id);
                         if (status.label === "—") return <span className="text-gray-400 text-xs">—</span>;
                         return (
                           <button
@@ -352,8 +408,14 @@ export default function PaymentsPage() {
                         <Trash2 size={14} />
                       </button>
                     </td>
+                    <td className="px-4 py-3">
+                      <button onClick={() => setEditPayment({ ...p })} className="text-gray-400 hover:text-primary transition-colors">
+                        <Pencil size={14} />
+                      </button>
+                    </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -423,6 +485,40 @@ export default function PaymentsPage() {
         </div>
       )}
 
+      {/* Comment Details Modal */}
+      {commentModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm">
+            <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+              <h3 className="font-bold text-gray-900">Payment Comment</h3>
+              <button onClick={() => setCommentModal(null)} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
+            </div>
+            <div className="p-5 space-y-4">
+              <div>
+                <p className="font-semibold text-gray-900 text-lg">{commentModal.name}</p>
+                <p className="text-xs text-gray-400 mt-0.5 capitalize">
+                  {commentModal.building} Building · Room {commentModal.room_no}
+                </p>
+              </div>
+              <div className="bg-gray-50 rounded-xl p-4">
+                <p className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">Comment</p>
+                <p className="text-sm text-gray-700">
+                  {commentModal.comment || "No comment added for this payment."}
+                </p>
+              </div>
+            </div>
+            <div className="p-5 border-t border-gray-100">
+              <button
+                onClick={() => setCommentModal(null)}
+                className="w-full py-2.5 bg-gray-100 text-gray-700 font-semibold rounded-xl hover:bg-gray-200 text-sm"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Add Payment Modal */}
       {showAdd && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
@@ -433,6 +529,30 @@ export default function PaymentsPage() {
             </div>
             <div className="p-6 space-y-4">
               <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Select Building</label>
+                <div className="flex gap-2">
+                  {(["gold", "silver"] as const).map((b) => (
+                    <button
+                      key={b}
+                      onClick={() => {
+                        setModalBuilding(b);
+                        setForm({ ...form, student_id: "", student_name: "", room_no: "", building: b, amount_paid: 0 });
+                      }}
+                      className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-all ${
+                        modalBuilding === b
+                          ? b === "gold"
+                            ? "bg-amber-50 border-amber-300 text-amber-700"
+                            : "bg-slate-100 border-slate-300 text-slate-700"
+                          : "bg-white border-gray-200 text-gray-400 hover:border-gray-300"
+                      }`}
+                    >
+                      {b === "gold" ? "Gold Building" : "Silver Building"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Select Student</label>
                 <select
                   value={form.student_id}
@@ -440,9 +560,9 @@ export default function PaymentsPage() {
                   className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none"
                 >
                   <option value="">— Choose Student —</option>
-                  {students.map((s) => (
+                  {students.filter((s) => s.building === modalBuilding).map((s) => (
                     <option key={s.id} value={s.id}>
-                      [{s.building === "gold" ? "Gold" : "Silver"}] Room {s.room_no} · {s.name}
+                      Room {s.room_no} · {s.name}
                     </option>
                   ))}
                 </select>
@@ -555,6 +675,107 @@ export default function PaymentsPage() {
                 className="flex-[2] py-3 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark text-sm disabled:opacity-60"
               >
                 {saving ? "Saving..." : "Add Payment"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Payment Modal */}
+      {editPayment && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+            <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-gray-900 text-lg">Edit Payment</h3>
+                <p className="text-xs text-gray-400 mt-0.5">{editPayment.student_name} · Room {editPayment.room_no}</p>
+              </div>
+              <button onClick={() => setEditPayment(null)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Month</label>
+                  <select
+                    value={editPayment.month}
+                    onChange={(e) => setEditPayment({ ...editPayment, month: e.target.value })}
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none"
+                  >
+                    {MONTHS.map((m) => <option key={m}>{m}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Year</label>
+                  <select
+                    value={editPayment.year}
+                    onChange={(e) => setEditPayment({ ...editPayment, year: Number(e.target.value) })}
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none"
+                  >
+                    {[2024, 2025, 2026].map((y) => <option key={y}>{y}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Amount Paid (₹)</label>
+                  <div className="relative">
+                    <IndianRupee size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="number"
+                      value={editPayment.amount_paid}
+                      onChange={(e) => setEditPayment({ ...editPayment, amount_paid: Number(e.target.value) })}
+                      className="w-full pl-8 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Payment Date</label>
+                  <input
+                    type="date"
+                    value={editPayment.payment_date}
+                    onChange={(e) => setEditPayment({ ...editPayment, payment_date: e.target.value })}
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Payment Mode</label>
+                  <select
+                    value={editPayment.payment_mode}
+                    onChange={(e) => setEditPayment({ ...editPayment, payment_mode: e.target.value })}
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none"
+                  >
+                    <option value="cash">Cash</option>
+                    <option value="upi">UPI</option>
+                    <option value="bank_transfer">Bank Transfer</option>
+                    <option value="cheque">Cheque</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Comment</label>
+                  <input
+                    type="text"
+                    value={editPayment.comment || ""}
+                    onChange={(e) => setEditPayment({ ...editPayment, comment: e.target.value })}
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    placeholder="Optional note"
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="p-6 border-t border-gray-100 flex gap-3">
+              <button onClick={() => setEditPayment(null)} className="flex-1 py-3 border border-gray-200 text-gray-600 font-semibold rounded-xl hover:bg-gray-50 text-sm">
+                Cancel
+              </button>
+              <button
+                onClick={handleUpdate}
+                disabled={editSaving}
+                className="flex-[2] py-3 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark text-sm disabled:opacity-60"
+              >
+                {editSaving ? "Saving..." : "Save Changes"}
               </button>
             </div>
           </div>
