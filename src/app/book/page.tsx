@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Phone, User, Mail, Calendar, Clock, CheckCircle2,
@@ -192,6 +192,20 @@ export default function BookingPage() {
   const [bookingId, setBookingId] = useState("");
   const [error,    setError]    = useState("");
   const [pricingData, setPricingData] = useState<{ item_name: string; amount: number; building: string; category: string; price_type: string }[]>([]);
+
+  const stepContainerRef = useRef<HTMLDivElement | null>(null);
+  const isFirstStepRender = useRef(true);
+
+  useEffect(() => {
+    if (isFirstStepRender.current) {
+      isFirstStepRender.current = false;
+      return;
+    }
+    const el = stepContainerRef.current;
+    if (!el) return;
+    const top = el.getBoundingClientRect().top + window.scrollY - 16;
+    window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+  }, [step, step3Building]);
 
   const STEPS = bookingMode === "student" ? STUDENT_STEPS : PUBLIC_STEPS;
   const isPublic = bookingMode === "public";
@@ -767,7 +781,7 @@ export default function BookingPage() {
       </div>
 
       {/* ── 3-column layout ─────────────────────────────────────── */}
-      <div className="container-custom py-8 lg:py-12">
+      <div ref={stepContainerRef} className="container-custom py-8 lg:py-12 scroll-mt-4">
         <div className="lg:grid lg:grid-cols-[220px,1fr,280px] lg:gap-8 xl:gap-10">
 
           {/* LEFT: Step sidebar (desktop only) */}

@@ -217,27 +217,27 @@ export default function AmenitiesSection() {
           <div className="relative w-full min-w-0">
             {/* Main card — full-bleed image with overlaid text */}
             <div className="relative rounded-3xl overflow-hidden shadow-2xl h-[360px] sm:h-[460px] lg:h-[500px]">
-              {/* Full-bleed image */}
-              <AnimatePresence mode="wait" custom={direction}>
+              {/* All images stacked — preloaded, opacity-controlled for instant swaps */}
+              {amenities.map((a, i) => (
                 <motion.div
-                  key={`img-${activeIndex}`}
-                  custom={direction}
-                  variants={slideVariants}
-                  initial="enter"
-                  animate="center"
-                  exit="exit"
+                  key={`img-${i}`}
+                  animate={{ opacity: i === activeIndex ? 1 : 0 }}
+                  initial={false}
                   transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
                   className="absolute inset-0"
+                  style={{ zIndex: i === activeIndex ? 1 : 0 }}
                 >
                   <Image
-                    src={active.image}
-                    alt={active.title}
+                    src={a.image}
+                    alt={a.title}
                     fill
+                    priority={i < 3}
+                    loading={i < 3 ? undefined : "eager"}
                     className="object-cover"
                     sizes="(max-width: 1024px) 100vw, 50vw"
                   />
                 </motion.div>
-              </AnimatePresence>
+              ))}
 
               {/* Gradient overlay — bottom-heavy for legibility */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/10 z-10" />
@@ -309,7 +309,7 @@ export default function AmenitiesSection() {
             </div>
 
             {/* Mini thumbnails row */}
-            <div className="mt-4 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">
+            <div className="mt-4 flex gap-2 overflow-x-auto pb-1 no-scrollbar">
               {amenities.map((a, i) => {
                 const Icon = a.icon;
                 return (

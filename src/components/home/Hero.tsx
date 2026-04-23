@@ -35,27 +35,34 @@ export default function Hero() {
   return (
     <section className="relative h-screen w-full overflow-hidden bg-navy-dark">
 
-      {/* Photo slideshow */}
+      {/* Photo slideshow — all slides stacked, preloaded for instant swaps */}
       <div className="absolute inset-0 z-0">
-        <AnimatePresence initial={false}>
+        {slides.map((slide, i) => (
           <motion.div
-            key={current}
-            initial={{ opacity: 0, scale: 1.06 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 1.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+            key={i}
+            initial={false}
+            animate={{
+              opacity: i === current ? 1 : 0,
+              scale: i === current ? 1 : 1.06,
+            }}
+            transition={{
+              opacity: { duration: 1.6, ease: [0.25, 0.46, 0.45, 0.94] },
+              scale: { duration: 6, ease: "linear" },
+            }}
             className="absolute inset-0"
+            style={{ zIndex: i === current ? 1 : 0 }}
           >
             <Image
-              src={slides[current].src}
-              alt={slides[current].label}
+              src={slide.src}
+              alt={slide.label}
               fill
-              priority={current === 0}
+              priority={i < 3}
+              loading={i < 3 ? undefined : "eager"}
               className="object-cover"
               sizes="100vw"
             />
           </motion.div>
-        </AnimatePresence>
+        ))}
 
         {/* Overlays */}
         <div className="absolute inset-0 bg-black/45 pointer-events-none" />
