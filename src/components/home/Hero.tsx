@@ -66,8 +66,12 @@ export default function Hero() {
 
         {/* Overlays */}
         <div className="absolute inset-0 bg-black/20 pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-transparent to-transparent pointer-events-none" />
+        {/* Strong bottom-up mask — covers ~65% of height for text legibility */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{ background: "linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.65) 35%, rgba(0,0,0,0.2) 60%, transparent 100%)" }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/45 via-transparent to-transparent pointer-events-none" />
       </div>
 
       {/* Dot + label indicator — bottom-center */}
@@ -98,11 +102,11 @@ export default function Hero() {
                 Rushikonda, Visakhapatnam
               </p>
 
-              <h1 className="font-heading text-white font-bold tracking-tight leading-[1.1] drop-shadow-xl text-4xl sm:text-5xl lg:text-6xl mb-5">
+              <h1 className="font-heading text-white font-bold tracking-tight leading-[1.1] text-4xl sm:text-5xl lg:text-6xl mb-5" style={{ textShadow: "0 2px 20px rgba(0,0,0,0.8), 0 1px 4px rgba(0,0,0,0.6)" }}>
                 The Perfect<br />Home-like Stay
               </h1>
 
-              <p className="text-white/75 text-base sm:text-lg leading-relaxed mb-8 max-w-lg">
+              <p className="text-white/90 text-base sm:text-lg leading-relaxed mb-8 max-w-lg" style={{ textShadow: "0 1px 8px rgba(0,0,0,0.7)" }}>
                 Fully furnished rooms, home-cooked meals, 24/7 security &amp;
                 stunning beach views in the heart of Rushikonda.
               </p>
