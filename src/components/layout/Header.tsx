@@ -135,7 +135,7 @@ export default function Header() {
                         >
                           <span
                             className={`relative z-10 transition-colors duration-300 ${
-                              isActive ? "text-primary" : isHovered ? "text-primary" : "text-navy"
+                              isActive ? "text-primary-dark" : isHovered ? "text-primary-dark" : "text-navy"
                             }`}
                           >
                             {link.label}
@@ -145,7 +145,7 @@ export default function Header() {
                             transition={{ duration: 0.2 }}
                             className="relative z-10"
                           >
-                            <ChevronDown size={14} className={`transition-colors duration-300 ${isActive || isHovered ? "text-primary" : "text-navy/60"}`} />
+                            <ChevronDown size={14} className={`transition-colors duration-300 ${isActive || isHovered ? "text-primary-dark" : "text-navy/60"}`} />
                           </motion.span>
 
                           <AnimatePresence>
@@ -208,9 +208,9 @@ export default function Header() {
                         <span
                           className={`relative z-10 transition-colors duration-300 ${
                             isActive
-                              ? isSilver ? "text-slate-500" : "text-primary"
+                              ? isSilver ? "text-slate-500" : "text-primary-dark"
                               : isHovered
-                              ? isSilver ? "text-slate-500" : "text-primary"
+                              ? isSilver ? "text-slate-500" : "text-primary-dark"
                               : isSilver ? "text-slate-600" : "text-navy"
                           }`}
                         >
@@ -388,7 +388,7 @@ export default function Header() {
                                     className={`flex items-center justify-between pl-8 pr-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 ${
                                       pathname === child.href
                                         ? "bg-gradient-to-r from-primary to-primary-dark text-white shadow-soft"
-                                        : "text-navy/70 hover:bg-surface-secondary hover:text-primary"
+                                        : "text-navy/70 hover:bg-surface-secondary hover:text-primary-dark"
                                     }`}
                                   >
                                     <span>{child.label}</span>
@@ -420,7 +420,7 @@ export default function Header() {
                               : "bg-gradient-to-r from-primary to-primary-dark text-white shadow-soft"
                             : isSilver
                             ? "text-slate-600 hover:bg-slate-50 hover:text-slate-700 font-semibold"
-                            : "text-navy hover:bg-surface-secondary hover:text-primary"
+                            : "text-navy hover:bg-surface-secondary hover:text-primary-dark"
                         }`}
                       >
                         <span className="flex items-center gap-1.5">

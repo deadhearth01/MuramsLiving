@@ -152,9 +152,9 @@ export default function Testimonials() {
                   
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <h4 className="font-heading font-bold text-navy text-lg">
+                      <p className="font-heading font-bold text-navy text-lg">
                         {testimonials[activeIndex].name}
-                      </h4>
+                      </p>
                       <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
                         testimonials[activeIndex].type === "student" 
                           ? "bg-blue-100 text-blue-700" 
@@ -204,18 +204,20 @@ export default function Testimonials() {
           </div>
 
           {/* Dots Navigation */}
-          <div className="flex justify-center gap-2 mt-8">
+          <div className="flex justify-center gap-1 mt-8">
             {testimonials.map((_, index) => (
               <button
                 key={index}
                 onClick={() => goToSlide(index)}
-                className={`transition-all duration-300 rounded-full ${
-                  index === activeIndex 
-                    ? "w-8 h-2 bg-primary" 
-                    : "w-2 h-2 bg-navy/20 hover:bg-navy/40"
-                }`}
                 aria-label={`Go to testimonial ${index + 1}`}
-              />
+                className="p-3 flex items-center justify-center"
+              >
+                <span className={`block transition-all duration-300 rounded-full ${
+                  index === activeIndex
+                    ? "w-8 h-2 bg-primary"
+                    : "w-2 h-2 bg-navy/20 hover:bg-navy/40"
+                }`} />
+              </button>
             ))}
           </div>
         </div>

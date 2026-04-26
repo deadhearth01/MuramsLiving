@@ -60,6 +60,7 @@ export default function Hero() {
               loading={i < 3 ? undefined : "eager"}
               className="object-cover"
               sizes="100vw"
+              quality={65}
             />
           </motion.div>
         ))}

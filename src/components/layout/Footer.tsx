@@ -190,7 +190,7 @@ export default function Footer() {
 
           {/* Column 2: Quick Links */}
           <div className="lg:col-span-2 flex flex-col items-start">
-            <h3 className="font-semibold text-sm uppercase tracking-wider text-white/40 mb-4 lg:mb-6">
+            <h3 className="font-semibold text-sm uppercase tracking-wider text-white/65 mb-4 lg:mb-6">
               Quick Links
             </h3>
             <ul className="space-y-3">
@@ -232,7 +232,7 @@ export default function Footer() {
 
           {/* Column 3: Amenities */}
           <div className="lg:col-span-2 flex flex-col items-start">
-            <h3 className="font-semibold text-sm uppercase tracking-wider text-white/40 mb-4 lg:mb-6">
+            <h3 className="font-semibold text-sm uppercase tracking-wider text-white/65 mb-4 lg:mb-6">
               Amenities
             </h3>
             <ul className="space-y-3">
@@ -247,7 +247,7 @@ export default function Footer() {
 
           {/* Column 4: Contact */}
           <div className="col-span-2 lg:col-span-4 flex flex-col items-start">
-            <h3 className="font-semibold text-sm uppercase tracking-wider text-white/40 mb-4 lg:mb-6">
+            <h3 className="font-semibold text-sm uppercase tracking-wider text-white/65 mb-4 lg:mb-6">
               Get in Touch
             </h3>
             <ul className="space-y-5">

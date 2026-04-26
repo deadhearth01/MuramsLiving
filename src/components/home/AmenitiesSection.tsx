@@ -235,6 +235,7 @@ export default function AmenitiesSection() {
                     loading={i < 3 ? undefined : "eager"}
                     className="object-cover"
                     sizes="(max-width: 1024px) 100vw, 50vw"
+                    quality={65}
                   />
                 </motion.div>
               ))}
@@ -294,16 +295,17 @@ export default function AmenitiesSection() {
               </div>
 
               {/* Progress bar */}
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/20 z-30">
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/20 z-30 overflow-hidden">
                 <motion.div
                   key={activeIndex}
-                  className="h-full bg-primary"
-                  initial={{ width: "0%" }}
-                  animate={{ width: "100%" }}
+                  className="h-full w-full bg-primary origin-left"
+                  initial={{ scaleX: 0 }}
+                  animate={{ scaleX: 1 }}
                   transition={{
                     duration: AUTO_ADVANCE_MS / 1000,
                     ease: "linear",
                   }}
+                  style={{ willChange: "transform" }}
                 />
               </div>
             </div>
@@ -316,6 +318,7 @@ export default function AmenitiesSection() {
                   <button
                     key={a.title}
                     onClick={() => goTo(i)}
+                    aria-label={`View ${a.title}`}
                     className={`flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-200 border-2 ${
                       i === activeIndex
                         ? "border-primary bg-primary/10 text-primary"
