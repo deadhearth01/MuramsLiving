@@ -2,8 +2,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy",
-  description: "Privacy Policy for Murams Living PG & Hostel, Rushikonda, Visakhapatnam.",
+  title: "Privacy Policy | Murams Living",
+  description: "Privacy Policy for Murams Living PG & Hostel, Rushikonda, Visakhapatnam. Learn how we collect, use, and protect your personal information.",
+  alternates: {
+    canonical: "https://muramsliving.com/privacy",
+  },
+  robots: {
+    index: true,
+    follow: false,
+  },
 };
 
 export default function PrivacyPage() {

@@ -2,8 +2,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Terms of Service",
-  description: "Terms of Service for Murams Living PG & Hostel, Rushikonda, Visakhapatnam.",
+  title: "Terms of Service | Murams Living",
+  description: "Terms of Service for Murams Living PG & Hostel, Rushikonda, Visakhapatnam. Read our terms regarding bookings, stays, payments, and cancellations.",
+  alternates: {
+    canonical: "https://muramsliving.com/terms",
+  },
+  robots: {
+    index: true,
+    follow: false,
+  },
 };
 
 export default function TermsPage() {

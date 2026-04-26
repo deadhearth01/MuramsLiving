@@ -4,6 +4,7 @@ import "./globals.css";
 import PublicWrapper from "@/components/layout/PublicWrapper";
 import DevToolsBlocker from "@/components/layout/DevToolsBlocker";
 import SitePreloader from "@/components/layout/SitePreloader";
+import { Analytics } from "@vercel/analytics/next";
 
 const playfair = localFont({
   src: [
@@ -55,40 +56,130 @@ const bricolage = localFont({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://muramsliving.com"),
   title: {
-    default: "Murams Living - Premium PG & Hostel in Rushikonda, Visakhapatnam",
+    default: "Murams Living — Premium PG & Hostel Near Rushikonda Beach, Visakhapatnam",
     template: "%s | Murams Living",
   },
   description:
-    "Murams Living offers premium PG and hostel accommodation in Rushikonda, Visakhapatnam. Fully furnished rooms, A/C & Non-A/C options, home-cooked meals, 24/7 security, and stunning beach views.",
+    "Experience the best PG accommodation in Rushikonda, Visakhapatnam. Murams Living offers AC & Non-AC furnished rooms, home-cooked meals, 24/7 security, free WiFi, and stunning beach views — just 1 km from Rushikonda Beach.",
   keywords: [
     "PG in Rushikonda",
-    "Hostel Visakhapatnam",
+    "PG in Visakhapatnam",
+    "hostel Rushikonda Vizag",
+    "paying guest Visakhapatnam",
     "Murams Living",
     "PG Vizag",
-    "Paying Guest Rushikonda",
-    "Student accommodation Vizag",
-    "Working professionals PG Visakhapatnam",
+    "PG near Rushikonda beach",
+    "student PG Visakhapatnam",
+    "student hostel Vizag",
+    "PG near GITAM University",
+    "PG near Andhra University Vizag",
+    "guest house Rushikonda",
+    "short stay Vizag beach",
+    "AC PG rooms Visakhapatnam",
+    "affordable hostel Vizag",
   ],
+  authors: [{ name: "Murams Living", url: "https://muramsliving.com" }],
+  creator: "Murams Living",
+  publisher: "Murams Living",
   openGraph: {
-    title: "Murams Living - Premium PG & Hostel in Rushikonda",
+    siteName: "Murams Living",
+    title: "Murams Living — Premium PG & Hostel Near Rushikonda Beach",
     description:
-      "Your perfect home-like stay in Rushikonda, Visakhapatnam. A/C rooms, home food, beach view.",
+      "AC & Non-AC rooms, home-cooked meals, 24/7 security, free WiFi — just 1 km from Rushikonda Beach, Visakhapatnam.",
     type: "website",
     locale: "en_IN",
+    url: "https://muramsliving.com",
     images: [
       {
-        url: "/logo.png",
+        url: "/clicks/beach-view.jpeg",
         width: 1200,
         height: 630,
-        alt: "Murams Living",
+        alt: "Murams Living — Beach View from Rushikonda, Visakhapatnam",
       },
     ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Murams Living — Premium PG & Hostel Near Rushikonda Beach",
+    description:
+      "AC & Non-AC rooms, home-cooked meals, 24/7 security, free WiFi — 1 km from Rushikonda Beach, Visakhapatnam.",
+    images: ["/clicks/beach-view.jpeg"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
   },
   icons: {
     icon: "/favicon.png",
     apple: "/favicon.png",
+    shortcut: "/favicon.png",
   },
+  category: "travel",
+};
+
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": ["LodgingBusiness", "LocalBusiness"],
+  "@id": "https://muramsliving.com/#business",
+  name: "Murams Living",
+  url: "https://muramsliving.com",
+  logo: "https://muramsliving.com/logo.png",
+  image: [
+    "https://muramsliving.com/clicks/beach-view.jpeg",
+    "https://muramsliving.com/clicks/beds.png",
+    "https://muramsliving.com/Amenities/home-food.jpg",
+  ],
+  description:
+    "Premium PG & hostel accommodation in Rushikonda, Visakhapatnam. AC & Non-AC furnished rooms, home-cooked meals, 24/7 security, free WiFi, 1 km from Rushikonda Beach.",
+  address: {
+    "@type": "PostalAddress",
+    streetAddress: "Rushikonda",
+    addressLocality: "Visakhapatnam",
+    addressRegion: "Andhra Pradesh",
+    postalCode: "530045",
+    addressCountry: "IN",
+  },
+  geo: {
+    "@type": "GeoCoordinates",
+    latitude: 17.7872,
+    longitude: 83.3783,
+  },
+  telephone: "+917816055655",
+  email: "info@muramsliving.com",
+  priceRange: "₹₹",
+  currenciesAccepted: "INR",
+  paymentAccepted: "Cash, Bank Transfer, UPI",
+  openingHoursSpecification: {
+    "@type": "OpeningHoursSpecification",
+    dayOfWeek: [
+      "Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday",
+    ],
+    opens: "00:00",
+    closes: "23:59",
+  },
+  amenityFeature: [
+    { "@type": "LocationFeatureSpecification", name: "Free WiFi", value: true },
+    { "@type": "LocationFeatureSpecification", name: "Air Conditioning", value: true },
+    { "@type": "LocationFeatureSpecification", name: "Meals Included", value: true },
+    { "@type": "LocationFeatureSpecification", name: "24/7 Security", value: true },
+    { "@type": "LocationFeatureSpecification", name: "Parking", value: true },
+    { "@type": "LocationFeatureSpecification", name: "Beach View Terrace", value: true },
+    { "@type": "LocationFeatureSpecification", name: "Laundry Service", value: true },
+    { "@type": "LocationFeatureSpecification", name: "Hot Water", value: true },
+  ],
+  hasMap: "https://maps.google.com/?q=Murams+Living+Rushikonda+Visakhapatnam",
+  touristType: ["Students", "Tourists", "Business Travelers"],
+  checkinTime: "12:00",
+  checkoutTime: "11:00",
 };
 
 export default function RootLayout({
@@ -99,11 +190,16 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${playfair.variable} ${bricolage.variable}`}>
       <body className="font-body antialiased">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        />
         <DevToolsBlocker />
         <SitePreloader />
         <PublicWrapper>
           <main>{children}</main>
         </PublicWrapper>
+        <Analytics />
       </body>
     </html>
   );
