@@ -5,7 +5,7 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePathname } from "next/navigation";
 
-const MIN_DURATION = 2200;
+const MIN_DURATION = 600;
 
 export default function SitePreloader() {
   const pathname = usePathname();

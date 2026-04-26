@@ -309,7 +309,7 @@ export default function AmenitiesSection() {
             </div>
 
             {/* Mini thumbnails row */}
-            <div className="mt-4 flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+            <div className="mt-4 flex gap-2 overflow-x-hidden">
               {amenities.map((a, i) => {
                 const Icon = a.icon;
                 return (

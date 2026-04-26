@@ -19,6 +19,7 @@ interface Booking {
   preferred_room_type: string;
   selected_room_no: string;
   booking_type: string;
+  months_stay: number | null;
   adults: number;
   children: number;
   status: string;
@@ -212,6 +213,7 @@ export default function BookingsPage() {
                   <th className="text-left px-5 py-3.5 font-semibold text-gray-600">Contact</th>
                   <th className="text-left px-5 py-3.5 font-semibold text-gray-600">Check-in</th>
                   <th className="text-left px-5 py-3.5 font-semibold text-gray-600">Room</th>
+                  <th className="text-left px-5 py-3.5 font-semibold text-gray-600">Type</th>
                   <th className="text-left px-5 py-3.5 font-semibold text-gray-600">Status</th>
                   <th className="text-left px-5 py-3.5 font-semibold text-gray-600">Received</th>
                   <th className="text-left px-5 py-3.5 font-semibold text-gray-600">Actions</th>
@@ -261,6 +263,17 @@ export default function BookingsPage() {
                         </div>
                       ) : (
                         <span className="text-gray-400 text-xs capitalize">{booking.preferred_building || "Any"}</span>
+                      )}
+                    </td>
+                    <td className="px-5 py-4">
+                      {booking.booking_type === "student" ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-indigo-100 text-indigo-700 border border-indigo-200">
+                          <GraduationCap size={11} /> Student
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700 border border-amber-200">
+                          <Globe size={11} /> Guest
+                        </span>
                       )}
                     </td>
                     <td className="px-5 py-4">
@@ -341,8 +354,24 @@ export default function BookingsPage() {
                   </div>
                   <div>
                     <span className="text-xs text-gray-400">Booking Type</span>
-                    <p className="font-medium text-gray-800 mt-0.5 capitalize">{selectedBooking.booking_type || "—"}</p>
+                    <div className="mt-1">
+                      {selectedBooking.booking_type === "student" ? (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-100 text-indigo-700 border border-indigo-200">
+                          <GraduationCap size={13} /> Student
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-100 text-amber-700 border border-amber-200">
+                          <Globe size={13} /> Guest
+                        </span>
+                      )}
+                    </div>
                   </div>
+                  {selectedBooking.booking_type === "student" && selectedBooking.months_stay && (
+                    <div>
+                      <span className="text-xs text-gray-400">Stay Duration</span>
+                      <p className="font-medium text-gray-800 mt-0.5">{selectedBooking.months_stay} month{selectedBooking.months_stay !== 1 ? "s" : ""}</p>
+                    </div>
+                  )}
                   <div>
                     <span className="text-xs text-gray-400">Room Preference</span>
                     <p className="font-medium text-gray-800 mt-0.5 capitalize">

@@ -65,13 +65,31 @@ export default function Hero() {
         ))}
 
         {/* Overlays */}
-        <div className="absolute inset-0 bg-black/20 pointer-events-none" />
-        {/* Strong bottom-up mask — covers ~65% of height for text legibility */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{ background: "linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.65) 35%, rgba(0,0,0,0.2) 60%, transparent 100%)" }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/45 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-black/15 pointer-events-none" />
+
+        {/* Curved black mask — bezier curve top edge, fades to solid at bottom */}
+        <svg
+          className="absolute bottom-0 left-0 right-0 w-full pointer-events-none"
+          style={{ height: "72%" }}
+          viewBox="0 0 1440 600"
+          preserveAspectRatio="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <defs>
+            <linearGradient id="curveGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%"   stopColor="black" stopOpacity="0"    />
+              <stop offset="40%"  stopColor="black" stopOpacity="0.72" />
+              <stop offset="100%" stopColor="black" stopOpacity="0.94" />
+            </linearGradient>
+          </defs>
+          {/* Curve: rises to peak at centre (720,70), drops back at edges */}
+          <path
+            d="M0,210 Q720,70 1440,210 L1440,600 L0,600 Z"
+            fill="url(#curveGrad)"
+          />
+        </svg>
+
+        <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-transparent pointer-events-none" />
       </div>
 
       {/* Dot + label indicator — bottom-center */}

@@ -68,7 +68,7 @@ export default function PublicWrapper({ children }: { children: React.ReactNode 
     <>
       <Header />
       {children}
-      <StickySidebar />
+      {!isBookingPage && <StickySidebar />}
       <Footer />
       {!isBookingPage && (
         <>

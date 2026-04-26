@@ -87,9 +87,9 @@ export default function Footer() {
       </div>
 
       {/* CTA Section */}
-      <div className="relative border-b border-white/10">
-        <div className="container-custom py-16 lg:py-20">
-          <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
+      <div className="relative border-b border-white/15">
+        <div className="container-custom py-12 lg:py-20">
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-6 lg:gap-8">
             <div className="text-center lg:text-left">
               <motion.h2
                 initial={{ opacity: 0, y: 20 }}
@@ -144,11 +144,11 @@ export default function Footer() {
       </div>
 
       {/* Main Footer Content */}
-      <div className="relative container-custom py-16 lg:py-20">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-8">
+      <div className="relative container-custom pt-12 pb-10 lg:py-20">
+        <div className="grid grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-8">
           {/* Column 1: Brand */}
-          <div className="lg:col-span-4 flex flex-col items-center md:items-start">
-            <Link href="/" className="inline-block mb-6">
+          <div className="col-span-2 lg:col-span-4 flex flex-col items-start">
+            <Link href="/" className="inline-block mb-5">
               <Image
                 src="/logo.png"
                 alt="Murams Living"
@@ -157,7 +157,7 @@ export default function Footer() {
                 className="brightness-0 invert"
               />
             </Link>
-            <p className="text-white/60 text-sm leading-relaxed mb-6 max-w-sm text-center md:text-left">
+            <p className="text-white/60 text-sm leading-relaxed mb-5 max-w-sm text-left">
               Experience premium PG & Hostel living in Rushikonda,
               Visakhapatnam. Where comfort meets community, and every day feels
               like home.
@@ -189,8 +189,8 @@ export default function Footer() {
           </div>
 
           {/* Column 2: Quick Links */}
-          <div className="lg:col-span-2 flex flex-col items-center md:items-start">
-            <h3 className="font-semibold text-sm uppercase tracking-wider text-white/40 mb-6">
+          <div className="lg:col-span-2 flex flex-col items-start">
+            <h3 className="font-semibold text-sm uppercase tracking-wider text-white/40 mb-4 lg:mb-6">
               Quick Links
             </h3>
             <ul className="space-y-3">
@@ -231,8 +231,8 @@ export default function Footer() {
           </div>
 
           {/* Column 3: Amenities */}
-          <div className="lg:col-span-2 flex flex-col items-center md:items-start">
-            <h3 className="font-semibold text-sm uppercase tracking-wider text-white/40 mb-6">
+          <div className="lg:col-span-2 flex flex-col items-start">
+            <h3 className="font-semibold text-sm uppercase tracking-wider text-white/40 mb-4 lg:mb-6">
               Amenities
             </h3>
             <ul className="space-y-3">
@@ -246,8 +246,8 @@ export default function Footer() {
           </div>
 
           {/* Column 4: Contact */}
-          <div className="lg:col-span-4 flex flex-col items-center md:items-start">
-            <h3 className="font-semibold text-sm uppercase tracking-wider text-white/40 mb-6">
+          <div className="col-span-2 lg:col-span-4 flex flex-col items-start">
+            <h3 className="font-semibold text-sm uppercase tracking-wider text-white/40 mb-4 lg:mb-6">
               Get in Touch
             </h3>
             <ul className="space-y-5">
@@ -317,32 +317,44 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* Copyright Bar */}
-      <div className="relative border-t border-white/10">
-        <div className="container-custom py-6">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-white/40">
-            <p>© {currentYear} Murams Living. All rights reserved.</p>
-            <div className="flex items-center gap-6">
-              <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
-              <Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
+      {/* Bottom bar — single unified strip */}
+      <div className="relative border-t border-white/10 bg-black/25">
+        <div className="container-custom py-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+            {/* Copyright + agency credit */}
+            <div className="flex items-center gap-1.5 text-[13px] text-white/55">
+              <span>© {currentYear}</span>
+              <a
+                href="https://theavni.studio"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-white/75 hover:text-white transition-colors font-semibold tracking-wide"
+              >
+                AVNI Studio
+              </a>
+              <span className="text-white/30">·</span>
+              <span>All rights reserved.</span>
+            </div>
+
+            {/* Legal + made-with */}
+            <div className="flex items-center gap-4 text-[13px] text-white/50">
+              <Link href="/privacy" className="hover:text-white/80 transition-colors">Privacy</Link>
+              <Link href="/terms" className="hover:text-white/80 transition-colors">Terms</Link>
+              <span className="text-white/25">|</span>
+              <span className="flex items-center gap-1">
+                Crafted with <span className="text-red-400/80">♥</span>
+                <a
+                  href="https://theavni.studio"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-white/70 hover:text-white transition-colors font-semibold"
+                >
+                  AVNI Studio
+                </a>
+              </span>
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Crafted by */}
-      <div className="bg-black/30 border-t border-white/5 py-3 text-center">
-        <p className="text-xs text-white/25">
-          Crafted with <span className="text-red-400/60">♥</span> by{" "}
-          <a
-            href="https://theavni.studio"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-white/40 hover:text-white transition-colors font-medium"
-          >
-            AVNI Studio
-          </a>
-        </p>
       </div>
     </footer>
   );
