@@ -25,7 +25,7 @@ const navLinks: NavLink[] = [
   { href: "/silver", label: "Silver Building" },
   { href: "#", label: "Stay With Us", children: [
     { href: "/students", label: "For Students" },
-    { href: "/tourists", label: "For Guests" },
+    { href: "/guests", label: "For Guests" },
   ]},
   { href: "/amenities", label: "Amenities" },
   { href: "/gallery", label: "Gallery" },

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import TouristsPageClient from "./TouristsPageClient";
+import GuestsPageClient from "./GuestsPageClient";
 
 export const metadata: Metadata = {
   title: "Guest Rooms & Short Stays Near Rushikonda Beach, Vizag | Murams Living",
@@ -20,13 +20,13 @@ export const metadata: Metadata = {
     "Vizag tourist stay with meals",
   ],
   alternates: {
-    canonical: "https://muramsliving.com/tourists",
+    canonical: "https://muramsliving.com/guests",
   },
   openGraph: {
     title: "Guest Rooms & Short Stays Near Rushikonda Beach, Vizag",
     description:
       "1 km from Rushikonda Beach. Flexible short stays, home-cooked meals, AC rooms. Explore Vizag from the perfect base.",
-    url: "https://muramsliving.com/tourists",
+    url: "https://muramsliving.com/guests",
     type: "website",
     images: [
       {
@@ -86,14 +86,14 @@ const guestFaqSchema = {
   ],
 };
 
-export default function TouristsPage() {
+export default function GuestsPage() {
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(guestFaqSchema) }}
       />
-      <TouristsPageClient />
+      <GuestsPageClient />
     </>
   );
 }

@@ -14,7 +14,7 @@ const quickLinks = [
   { href: "/", label: "Home" },
   { href: "/about", label: "About Us" },
   { href: "/students", label: "Students" },
-  { href: "/tourists", label: "Guests" },
+  { href: "/guests", label: "Guests" },
   { href: "/silver", label: "Silver Building" },
   { href: "/amenities", label: "Amenities" },
   { href: "/gallery", label: "Gallery" },

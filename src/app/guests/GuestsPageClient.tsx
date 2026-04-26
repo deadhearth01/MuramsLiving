@@ -107,7 +107,7 @@ const fadeUp = {
   }),
 };
 
-export default function TouristsPageClient() {
+export default function GuestsPageClient() {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero */}
