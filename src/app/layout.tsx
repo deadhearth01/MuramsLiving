@@ -3,7 +3,6 @@ import localFont from "next/font/local";
 import "./globals.css";
 import PublicWrapper from "@/components/layout/PublicWrapper";
 import DevToolsBlocker from "@/components/layout/DevToolsBlocker";
-import SitePreloader from "@/components/layout/SitePreloader";
 import { Analytics } from "@vercel/analytics/next";
 
 const playfair = localFont({
@@ -247,7 +246,6 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
         />
         <DevToolsBlocker />
-        <SitePreloader />
         <PublicWrapper>
           <main>{children}</main>
         </PublicWrapper>
