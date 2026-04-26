@@ -36,6 +36,34 @@ export const metadata: Metadata = {
   },
 };
 
+const webPageSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "@id": "https://muramsliving.com/amenities#webpage",
+  url: "https://muramsliving.com/amenities",
+  name: "Amenities — AC Rooms, Home Food, Free WiFi, Beach View & More | Murams Living Rushikonda",
+  description:
+    "Full amenities at Murams Living: AC & Non-AC rooms, home-cooked meals, free WiFi, 24/7 security, beach view terrace, housekeeping, laundry, hot water. Rushikonda, Visakhapatnam.",
+  isPartOf: { "@id": "https://muramsliving.com/#website" },
+  about: { "@id": "https://muramsliving.com/#business" },
+  inLanguage: "en-IN",
+  breadcrumb: {
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://muramsliving.com" },
+      { "@type": "ListItem", position: 2, name: "Amenities", item: "https://muramsliving.com/amenities" },
+    ],
+  },
+};
+
 export default function AmenitiesPage() {
-  return <AmenitiesPageClient />;
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageSchema) }}
+      />
+      <AmenitiesPageClient />
+    </>
+  );
 }

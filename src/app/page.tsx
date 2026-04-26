@@ -27,6 +27,13 @@ export const metadata: Metadata = {
     "short stay Rushikonda Visakhapatnam",
     "home food PG Vizag",
     "affordable PG near beach Vizag",
+    "PG with food Visakhapatnam",
+    "PG accommodation Rushikonda 530045",
+    "rooms for rent Rushikonda Vizag",
+    "monthly PG Visakhapatnam AC",
+    "hostel with meals Visakhapatnam",
+    "Murams Living contact number",
+    "Murams Living address",
   ],
   alternates: {
     canonical: "https://muramsliving.com",
@@ -111,15 +118,58 @@ const faqSchema = {
   ],
 };
 
-const breadcrumbSchema = {
+const webPageSchema = {
   "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
+  "@type": "WebPage",
+  "@id": "https://muramsliving.com/#webpage",
+  url: "https://muramsliving.com",
+  name: "Murams Living — #1 PG & Hostel Near Rushikonda Beach, Visakhapatnam",
+  description:
+    "Premium PG & hostel in Rushikonda, Visakhapatnam — 1 km from Rushikonda Beach. AC & Non-AC rooms, home-cooked meals, 24/7 security, free WiFi.",
+  isPartOf: { "@id": "https://muramsliving.com/#website" },
+  about: { "@id": "https://muramsliving.com/#business" },
+  inLanguage: "en-IN",
+  speakable: {
+    "@type": "SpeakableSpecification",
+    cssSelector: ["h1", "h2", "[data-speakable]"],
+  },
+  breadcrumb: {
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://muramsliving.com" },
+    ],
+  },
+};
+
+const itemListSchema = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  name: "Room Types at Murams Living",
+  description: "AC and Non-AC room options for students and guests at Murams Living, Rushikonda, Visakhapatnam",
   itemListElement: [
     {
       "@type": "ListItem",
       position: 1,
-      name: "Home",
-      item: "https://muramsliving.com",
+      name: "2-Sharing AC Room",
+      url: "https://muramsliving.com/students",
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "3-Sharing AC Room",
+      url: "https://muramsliving.com/students",
+    },
+    {
+      "@type": "ListItem",
+      position: 3,
+      name: "4-Sharing AC Room",
+      url: "https://muramsliving.com/students",
+    },
+    {
+      "@type": "ListItem",
+      position: 4,
+      name: "Guest Short-Stay Room",
+      url: "https://muramsliving.com/guests",
     },
   ],
 };
@@ -133,7 +183,11 @@ export default function HomePage() {
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }}
       />
       <Hero />
       <Welcome />

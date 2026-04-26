@@ -86,12 +86,40 @@ const guestFaqSchema = {
   ],
 };
 
+const webPageSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "@id": "https://muramsliving.com/guests#webpage",
+  url: "https://muramsliving.com/guests",
+  name: "Guest Rooms & Short Stays Near Rushikonda Beach, Vizag | Murams Living",
+  description:
+    "Flexible short stays near Rushikonda Beach. Home-cooked meals, AC rooms, 5-minute walk to beach. Explore Visakhapatnam from the perfect base.",
+  isPartOf: { "@id": "https://muramsliving.com/#website" },
+  about: { "@id": "https://muramsliving.com/#business" },
+  inLanguage: "en-IN",
+  speakable: {
+    "@type": "SpeakableSpecification",
+    cssSelector: ["h1", "h2"],
+  },
+  breadcrumb: {
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://muramsliving.com" },
+      { "@type": "ListItem", position: 2, name: "For Guests", item: "https://muramsliving.com/guests" },
+    ],
+  },
+};
+
 export default function GuestsPage() {
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(guestFaqSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageSchema) }}
       />
       <GuestsPageClient />
     </>

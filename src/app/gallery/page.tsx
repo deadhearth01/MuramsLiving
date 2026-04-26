@@ -34,6 +34,34 @@ export const metadata: Metadata = {
   },
 };
 
+const webPageSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "@id": "https://muramsliving.com/gallery#webpage",
+  url: "https://muramsliving.com/gallery",
+  name: "Photo Gallery — Rooms, Terrace, Dining & Facilities | Murams Living Rushikonda",
+  description:
+    "Browse photos of Murams Living — furnished AC/Non-AC rooms, beach view terrace, dining area, and common areas. Premium PG in Rushikonda, Visakhapatnam.",
+  isPartOf: { "@id": "https://muramsliving.com/#website" },
+  about: { "@id": "https://muramsliving.com/#business" },
+  inLanguage: "en-IN",
+  breadcrumb: {
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://muramsliving.com" },
+      { "@type": "ListItem", position: 2, name: "Gallery", item: "https://muramsliving.com/gallery" },
+    ],
+  },
+};
+
 export default function GalleryPage() {
-  return <GalleryPageClient />;
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageSchema) }}
+      />
+      <GalleryPageClient />
+    </>
+  );
 }

@@ -14,9 +14,15 @@ export const metadata: Metadata = {
     "student accommodation Vizag",
     "2 sharing PG Visakhapatnam",
     "3 sharing PG Vizag",
+    "4 sharing hostel Vizag",
     "affordable student PG Rushikonda",
     "long stay PG Vizag",
     "student PG with meals Visakhapatnam",
+    "boys PG Rushikonda Vizag",
+    "girls PG Rushikonda Visakhapatnam",
+    "monthly PG Vizag with food WiFi",
+    "student rooms Rushikonda beach Vizag",
+    "PG hostel near GITAM Rushikonda",
   ],
   alternates: {
     canonical: "https://muramsliving.com/students",
@@ -93,12 +99,40 @@ const studentFaqSchema = {
   ],
 };
 
+const webPageSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "@id": "https://muramsliving.com/students#webpage",
+  url: "https://muramsliving.com/students",
+  name: "Student PG in Rushikonda — Near GITAM, GIMSR & Andhra University, Vizag",
+  description:
+    "Best student PG in Rushikonda, Visakhapatnam — near GITAM University & Andhra University. Affordable 2, 3 & 4 sharing AC/Non-AC rooms with home-cooked meals, free WiFi & 24/7 security.",
+  isPartOf: { "@id": "https://muramsliving.com/#website" },
+  about: { "@id": "https://muramsliving.com/#business" },
+  inLanguage: "en-IN",
+  speakable: {
+    "@type": "SpeakableSpecification",
+    cssSelector: ["h1", "h2"],
+  },
+  breadcrumb: {
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://muramsliving.com" },
+      { "@type": "ListItem", position: 2, name: "For Students", item: "https://muramsliving.com/students" },
+    ],
+  },
+};
+
 export default function StudentsPage() {
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(studentFaqSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageSchema) }}
       />
       <StudentsPageClient />
     </>

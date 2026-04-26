@@ -76,12 +76,36 @@ const localBusinessSchema = {
   ],
 };
 
+const webPageSchema = {
+  "@context": "https://schema.org",
+  "@type": "ContactPage",
+  "@id": "https://muramsliving.com/contact#webpage",
+  url: "https://muramsliving.com/contact",
+  name: "Contact Murams Living — Call +91 78160 55655 | Rushikonda, Visakhapatnam",
+  description:
+    "Contact Murams Living for room availability, pricing & bookings. Call or WhatsApp +91 78160 55655. Rushikonda, Visakhapatnam — 530045.",
+  isPartOf: { "@id": "https://muramsliving.com/#website" },
+  about: { "@id": "https://muramsliving.com/#business" },
+  inLanguage: "en-IN",
+  breadcrumb: {
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://muramsliving.com" },
+      { "@type": "ListItem", position: 2, name: "Contact", item: "https://muramsliving.com/contact" },
+    ],
+  },
+};
+
 export default function ContactPage() {
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageSchema) }}
       />
       <ContactPageClient />
     </>

@@ -25,6 +25,34 @@ export const metadata: Metadata = {
   },
 };
 
+const webPageSchema = {
+  "@context": "https://schema.org",
+  "@type": "AboutPage",
+  "@id": "https://muramsliving.com/about#webpage",
+  url: "https://muramsliving.com/about",
+  name: "About Murams Living — Our Story, Mission & Values | Rushikonda, Visakhapatnam",
+  description:
+    "The story behind Murams Living — a family-run premium PG & hostel in Rushikonda, Visakhapatnam dedicated to safety, comfort, and a home-like experience.",
+  isPartOf: { "@id": "https://muramsliving.com/#website" },
+  about: { "@id": "https://muramsliving.com/#business" },
+  inLanguage: "en-IN",
+  breadcrumb: {
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://muramsliving.com" },
+      { "@type": "ListItem", position: 2, name: "About Us", item: "https://muramsliving.com/about" },
+    ],
+  },
+};
+
 export default function AboutPage() {
-  return <AboutPageClient />;
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageSchema) }}
+      />
+      <AboutPageClient />
+    </>
+  );
 }

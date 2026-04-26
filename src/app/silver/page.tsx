@@ -65,12 +65,36 @@ const silverSchema = {
   ],
 };
 
+const webPageSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "@id": "https://muramsliving.com/silver#webpage",
+  url: "https://muramsliving.com/silver",
+  name: "Silver Building — Premium PG Rooms in Rushikonda, Visakhapatnam | Murams Living",
+  description:
+    "Premium AC/Non-AC furnished rooms, dedicated parking, beach view terrace. Ideal for professionals and senior students. Rushikonda, Vizag.",
+  isPartOf: { "@id": "https://muramsliving.com/#website" },
+  about: { "@id": "https://muramsliving.com/#business" },
+  inLanguage: "en-IN",
+  breadcrumb: {
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://muramsliving.com" },
+      { "@type": "ListItem", position: 2, name: "Silver Building", item: "https://muramsliving.com/silver" },
+    ],
+  },
+};
+
 export default function SilverPage() {
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(silverSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageSchema) }}
       />
       <SilverPageClient />
     </>

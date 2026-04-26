@@ -177,9 +177,57 @@ const organizationSchema = {
     { "@type": "LocationFeatureSpecification", name: "Hot Water", value: true },
   ],
   hasMap: "https://maps.google.com/?q=Murams+Living+Rushikonda+Visakhapatnam",
-  touristType: ["Students", "Tourists", "Business Travelers"],
+  touristType: ["Students", "Guests", "Tourists", "Business Travelers"],
   checkinTime: "12:00",
   checkoutTime: "11:00",
+  numberOfRooms: 40,
+  starRating: { "@type": "Rating", ratingValue: "4.5" },
+  knowsAbout: [
+    "Student Accommodation",
+    "Paying Guest Accommodation",
+    "Beach View Rooms",
+    "Hostel Services",
+    "Home-Cooked Meals",
+  ],
+  keywords:
+    "PG Rushikonda, hostel Visakhapatnam, student PG Vizag, paying guest Rushikonda beach, PG near GITAM University",
+  slogan: "Your Home Away From Home — 1 km from Rushikonda Beach",
+  contactPoint: [
+    {
+      "@type": "ContactPoint",
+      telephone: "+917816055655",
+      contactType: "reservations",
+      areaServed: "IN",
+      availableLanguage: ["English", "Telugu", "Hindi"],
+    },
+    {
+      "@type": "ContactPoint",
+      telephone: "+917842222284",
+      contactType: "customer support",
+      areaServed: "IN",
+      availableLanguage: ["English", "Telugu", "Hindi"],
+    },
+  ],
+};
+
+const websiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "@id": "https://muramsliving.com/#website",
+  url: "https://muramsliving.com",
+  name: "Murams Living",
+  description:
+    "Premium PG & Hostel in Rushikonda, Visakhapatnam — 1 km from Rushikonda Beach. AC & Non-AC rooms, home-cooked meals, 24/7 security, free WiFi.",
+  publisher: { "@id": "https://muramsliving.com/#business" },
+  inLanguage: "en-IN",
+  potentialAction: {
+    "@type": "SearchAction",
+    target: {
+      "@type": "EntryPoint",
+      urlTemplate: "https://muramsliving.com/?q={search_term_string}",
+    },
+    "query-input": "required name=search_term_string",
+  },
 };
 
 export default function RootLayout({
@@ -193,6 +241,10 @@ export default function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
         />
         <DevToolsBlocker />
         <SitePreloader />
